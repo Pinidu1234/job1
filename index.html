@@ -1,0 +1,2767 @@
+```html
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Sri Lanka Job Calendar</title>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    min-height:100%;
+    overflow-x:hidden;
+}
+
+body{
+    background:#0f172a;
+    color:#fff;
+    font-family:Arial,"Noto Sans Sinhala",sans-serif;
+}
+
+.app{
+    width:100%;
+    max-width:600px;
+    margin:0 auto;
+    padding:7px;
+}
+
+/* HEADER */
+header{
+    background:#1e293b;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:7px;
+}
+
+header h2{
+    margin:0;
+    font-size:18px;
+}
+
+header p{
+    margin:3px 0 0;
+    color:#94a3b8;
+    font-size:9px;
+}
+
+/* NAVIGATION */
+.nav{
+    width:100%;
+    display:grid;
+    grid-template-columns:34px 1fr 34px;
+    gap:4px;
+    margin-bottom:6px;
+}
+
+.nav button,
+.inputBtn,
+.outputBtn{
+    height:34px;
+    border:1px solid #334155;
+    border-radius:7px;
+    background:#1e293b;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.nav button:active,
+.inputBtn:active,
+.outputBtn:active{
+    transform:scale(.97);
+}
+
+.month{
+    height:34px;
+    background:#1e293b;
+    border-radius:7px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:bold;
+}
+
+/* SECOND NAV */
+.actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:5px;
+    margin-bottom:7px;
+}
+
+.inputBtn,
+.outputBtn{
+    width:100%;
+    height:35px;
+    background:#1e293b;
+}
+
+.inputBtn input{
+    display:none;
+}
+
+/* LEGEND */
+.legend{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:3px;
+    margin-bottom:6px;
+}
+
+.legend span{
+    padding:5px 1px;
+    border-radius:5px;
+    text-align:center;
+    font-size:7px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.l-day{background:#15803d}
+.l-night{background:#1d4ed8}
+.l-off{background:#475569}
+.l-leave{background:#ca8a04}
+.l-holiday{background:#991b1b}
+
+/* CALENDAR */
+.calendar{
+    width:100%;
+    background:#1e293b;
+    border-radius:10px;
+    padding:4px;
+}
+
+.week,
+.days{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:2px;
+}
+
+.week{
+    margin-bottom:2px;
+}
+
+.week div{
+    min-width:0;
+    text-align:center;
+    color:#94a3b8;
+    font-size:8px;
+    font-weight:bold;
+    padding:3px 0;
+}
+
+.day{
+    min-width:0;
+    width:100%;
+    min-height:66px;
+    background:#0f172a;
+    border:1px solid #263449;
+    border-radius:6px;
+    padding:3px 2px;
+    cursor:pointer;
+    overflow:hidden;
+}
+
+.day:active{
+    transform:scale(.98);
+}
+
+.empty{
+    background:transparent;
+    border:0;
+    cursor:default;
+}
+
+.num{
+    font-size:10px;
+    font-weight:bold;
+    line-height:12px;
+}
+
+.sun .num{
+    color:#f87171;
+}
+
+.today{
+    border:2px solid #facc15;
+}
+
+/* SHIFT */
+.shift{
+    width:100%;
+    margin-top:2px;
+    padding:3px 1px;
+    border-radius:4px;
+    text-align:center;
+    font-size:6px;
+    line-height:8px;
+    font-weight:bold;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+.day-shift{background:#15803d}
+.night-shift{background:#1d4ed8}
+.off-shift{background:#475569}
+.leave-shift{background:#ca8a04}
+.holiday{background:#991b1b}
+
+.hours{
+    margin-top:2px;
+    text-align:center;
+    color:#facc15;
+    font-size:6px;
+    font-weight:bold;
+}
+
+.holiday-name{
+    margin-top:1px;
+    color:#fca5a5;
+    font-size:5px;
+    text-align:center;
+    line-height:6px;
+    overflow:hidden;
+}
+
+/* SUMMARY */
+.summary{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:3px;
+    margin-top:6px;
+}
+
+.card{
+    min-width:0;
+    background:#1e293b;
+    border-radius:7px;
+    padding:6px 2px;
+    text-align:center;
+}
+
+.card small{
+    display:block;
+    color:#94a3b8;
+    font-size:6px;
+    white-space:nowrap;
+}
+
+.card b{
+    display:block;
+    margin-top:2px;
+    font-size:13px;
+}
+
+/* MODAL */
+.modal,
+.outputMenu{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.75);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    z-index:1000;
+}
+
+.modal.show,
+.outputMenu.show{
+    display:flex;
+}
+
+.box,
+.outputBox{
+    width:100%;
+    max-width:340px;
+    background:#1e293b;
+    border-radius:14px;
+    padding:16px;
+}
+
+.box h3,
+.outputBox h3{
+    margin:0 0 5px;
+    font-size:17px;
+}
+
+.date{
+    color:#94a3b8;
+    font-size:11px;
+    margin-bottom:12px;
+}
+
+label.formLabel{
+    display:block;
+    color:#cbd5e1;
+    font-size:11px;
+    margin:9px 0 4px;
+}
+
+select,
+input[type="time"]{
+    width:100%;
+    height:40px;
+    background:#0f172a;
+    color:#fff;
+    border:1px solid #475569;
+    border-radius:8px;
+    padding:0 9px;
+    font-size:14px;
+}
+
+.buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-top:13px;
+}
+
+.buttons button,
+.outputButtons button,
+.closeOutput,
+.delete{
+    height:40px;
+    border:0;
+    border-radius:8px;
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.cancel{
+    background:#475569;
+}
+
+.save{
+    background:#16a34a;
+}
+
+.delete{
+    width:100%;
+    margin-top:6px;
+    background:#dc2626;
+}
+
+/* OUTPUT */
+.outputButtons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-top:12px;
+}
+
+.excelExport{
+    background:#15803d;
+}
+
+.csvExport{
+    background:#2563eb;
+}
+
+.closeOutput{
+    width:100%;
+    margin-top:7px;
+    background:#475569;
+}
+
+/* SMALL PHONES */
+@media(max-width:360px){
+
+    .app{
+        padding:5px;
+    }
+
+    header{
+        padding:10px;
+    }
+
+    header h2{
+        font-size:16px;
+    }
+
+    .nav{
+        grid-template-columns:30px 1fr 30px;
+    }
+
+    .nav button,
+    .inputBtn,
+    .outputBtn,
+    .month{
+        height:32px;
+        font-size:9px;
+    }
+
+    .day{
+        min-height:59px;
+        padding:2px 1px;
+    }
+
+    .num{
+        font-size:9px;
+    }
+
+    .shift{
+        font-size:5px;
+        line-height:7px;
+        padding:2px 0;
+    }
+
+    .hours{
+        font-size:5px;
+    }
+
+    .holiday-name{
+        font-size:4px;
+    }
+
+    .legend span{
+        font-size:6px;
+    }
+
+    .card{
+        padding:5px 1px;
+    }
+
+    .card small{
+        font-size:5px;
+    }
+
+    .card b{
+        font-size:11px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+    <h2>🇱🇰 Sri Lanka Job Calendar</h2>
+    <p>Shift • Leave • Working Hours • Excel • CSV</p>
+</header>
+
+<!-- MONTH NAVIGATION -->
+<div class="nav">
+
+    <button onclick="prevMonth()">◀</button>
+
+    <div class="month" id="monthTitle"></div>
+
+    <button onclick="nextMonth()">▶</button>
+
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="actions">
+
+    <label class="inputBtn">
+        📥 INPUT
+        <input
+            type="file"
+            id="dataInput"
+            accept=".xlsx,.xls,.csv"
+            onchange="importData(event)"
+        >
+    </label>
+
+    <button
+        class="outputBtn"
+        onclick="showOutputMenu()">
+        📤 OUTPUT
+    </button>
+
+</div>
+
+<!-- TODAY -->
+<button
+    onclick="todayMonth()"
+    style="
+        width:100%;
+        height:32px;
+        margin-bottom:6px;
+        background:#1e293b;
+        color:white;
+        border:1px solid #334155;
+        border-radius:7px;
+        font-size:10px;
+        font-weight:bold;
+    ">
+    📅 අද මාසයට යන්න
+</button>
+
+<!-- LEGEND -->
+<div class="legend">
+
+    <span class="l-day">☀️ DAY</span>
+    <span class="l-night">🌙 NIGHT</span>
+    <span class="l-off">🟢 OFF</span>
+    <span class="l-leave">🟡 නිවාඩු</span>
+    <span class="l-holiday">🔴 HOLIDAY</span>
+
+</div>
+
+<!-- CALENDAR -->
+<div class="calendar">
+
+    <div class="week">
+        <div>ඉරි</div>
+        <div>සඳු</div>
+        <div>අඟ</div>
+        <div>බදා</div>
+        <div>බ්‍රහ</div>
+        <div>සිකු</div>
+        <div>සෙන</div>
+    </div>
+
+    <div
+        class="days"
+        id="calendarDays">
+    </div>
+
+</div>
+
+<!-- SUMMARY -->
+<div class="summary">
+
+    <div class="card">
+        <small>☀️ DAY</small>
+        <b id="dayCount">0</b>
+    </div>
+
+    <div class="card">
+        <small>🌙 NIGHT</small>
+        <b id="nightCount">0</b>
+    </div>
+
+    <div class="card">
+        <small>🟢 OFF</small>
+        <b id="offCount">0</b>
+    </div>
+
+    <div class="card">
+        <small>🟡 LEAVE</small>
+        <b id="leaveCount">0</b>
+    </div>
+
+    <div class="card">
+        <small>⏱️ පැය</small>
+        <b id="hoursCount">0h</b>
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- SHIFT MODAL -->
+<div
+    class="modal"
+    id="shiftModal">
+
+    <div class="box">
+
+        <h3>📅 Shift / නිවාඩු</h3>
+
+        <div
+            class="date"
+            id="selectedDate">
+        </div>
+
+        <label class="formLabel">
+            Status
+        </label>
+
+        <select id="shiftType">
+
+            <option value="">
+                Select
+            </option>
+
+            <option value="day">
+                ☀️ DAY
+            </option>
+
+            <option value="night">
+                🌙 NIGHT
+            </option>
+
+            <option value="off">
+                🟢 OFF
+            </option>
+
+            <option value="leave">
+                🟡 නිවාඩු
+            </option>
+
+        </select>
+
+        <label class="formLabel">
+            🟢 IN
+        </label>
+
+        <input
+            type="time"
+            id="inTime"
+        >
+
+        <label class="formLabel">
+            🔴 OUT
+        </label>
+
+        <input
+            type="time"
+            id="outTime"
+        >
+
+        <div class="buttons">
+
+            <button
+                class="cancel"
+                onclick="closeModal()">
+                Cancel
+            </button>
+
+            <button
+                class="save"
+                onclick="saveShift()">
+                💾 Save
+            </button>
+
+        </div>
+
+        <button
+            class="delete"
+            onclick="deleteShift()">
+            🗑 Delete
+        </button>
+
+    </div>
+</div>
+
+
+<!-- OUTPUT MODAL -->
+<div
+    class="outputMenu"
+    id="outputMenu">
+
+    <div class="outputBox">
+
+        <h3>📤 OUTPUT</h3>
+
+        <div
+            style="
+                color:#94a3b8;
+                font-size:11px;
+                margin-top:3px;
+            ">
+            File type එක තෝරන්න
+        </div>
+
+        <div class="outputButtons">
+
+            <button
+                class="excelExport"
+                onclick="exportExcel()">
+                📊 Excel
+            </button>
+
+            <button
+                class="csvExport"
+                onclick="exportCSV()">
+                📄 CSV
+            </button>
+
+        </div>
+
+        <button
+            class="closeOutput"
+            onclick="closeOutputMenu()">
+            Cancel
+        </button>
+
+    </div>
+</div>
+
+
+<script>
+
+/* =========================
+   VARIABLES
+========================= */
+
+let currentDate = new Date();
+let selectedDate = "";
+
+
+/* =========================
+   MONTHS
+========================= */
+
+const months = [
+    "ජනවාරි",
+    "පෙබරවාරි",
+    "මාර්තු",
+    "අප්‍රේල්",
+    "මැයි",
+    "ජූනි",
+    "ජූලි",
+    "අගෝස්තු",
+    "සැප්තැම්බර්",
+    "ඔක්තෝබර්",
+    "නොවැම්බර්",
+    "දෙසැම්බර්"
+];
+
+
+/* =========================
+   HOLIDAYS
+========================= */
+
+const holidays = {
+
+    "2026-01-03":"Duruthu Poya",
+    "2026-01-15":"Thai Pongal",
+    "2026-02-01":"Navam Poya",
+    "2026-02-04":"National Day",
+    "2026-02-15":"Maha Sivarathri",
+    "2026-03-02":"Madin Poya",
+    "2026-03-21":"Eid al-Fitr",
+    "2026-04-01":"Bak Poya",
+    "2026-04-03":"Good Friday",
+    "2026-04-13":"New Year Eve",
+    "2026-04-14":"New Year Day",
+    "2026-05-01":"Vesak Poya / May Day",
+    "2026-05-28":"Eid al-Adha",
+    "2026-05-30":"Adhi Poson Poya",
+    "2026-05-31":"Vesak Holiday",
+    "2026-06-29":"Poson Poya",
+    "2026-07-29":"Esala Poya",
+    "2026-08-26":"Milad-Un-Nabi",
+    "2026-08-27":"Nikini Poya",
+    "2026-09-26":"Binara Poya",
+    "2026-10-25":"Vap Poya",
+    "2026-11-08":"Deepavali",
+    "2026-11-24":"Il Poya",
+    "2026-12-23":"Unduvap Poya",
+    "2026-12-25":"Christmas"
+
+};
+
+
+/* =========================
+   STORAGE
+========================= */
+
+function getData(){
+
+    try{
+
+        return JSON.parse(
+            localStorage.getItem(
+                "jobCalendarData"
+            ) || "{}"
+        );
+
+    }catch(e){
+
+        return {};
+
+    }
+
+}
+
+
+function saveData(data){
+
+    localStorage.setItem(
+        "jobCalendarData",
+        JSON.stringify(data)
+    );
+
+}
+
+
+/* =========================
+   DATE KEY
+========================= */
+
+function dateKey(
+    year,
+    month,
+    day
+){
+
+    return (
+
+        year +
+        "-" +
+        String(month + 1).padStart(2,"0") +
+        "-" +
+        String(day).padStart(2,"0")
+
+    );
+
+}
+
+
+/* =========================
+   HOURS
+========================= */
+
+function calculateHours(
+    start,
+    end
+){
+
+    if(!start || !end){
+        return 0;
+    }
+
+    let s =
+        start.split(":").map(Number);
+
+    let e =
+        end.split(":").map(Number);
+
+    let sm =
+        s[0] * 60 + s[1];
+
+    let em =
+        e[0] * 60 + e[1];
+
+    if(em <= sm){
+        em += 1440;
+    }
+
+    return (em - sm) / 60;
+
+}
+
+
+function formatHours(h){
+
+    return Number.isInteger(h)
+        ? h
+        : h.toFixed(1);
+
+}
+
+
+/* =========================
+   RENDER
+========================= */
+
+function renderCalendar(){
+
+    const year =
+        currentDate.getFullYear();
+
+    const month =
+        currentDate.getMonth();
+
+    document.getElementById(
+        "monthTitle"
+    ).textContent =
+        months[month] + " " + year;
+
+
+    const calendar =
+        document.getElementById(
+            "calendarDays"
+        );
+
+    calendar.innerHTML = "";
+
+
+    const firstDay =
+        new Date(
+            year,
+            month,
+            1
+        ).getDay();
+
+
+    const totalDays =
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+
+    for(
+        let i = 0;
+        i < firstDay;
+        i++
+    ){
+
+        const empty =
+            document.createElement("div");
+
+        empty.className =
+            "day empty";
+
+        calendar.appendChild(
+            empty
+        );
+
+    }
+
+
+    const data =
+        getData();
+
+
+    for(
+        let day = 1;
+        day <= totalDays;
+        day++
+    ){
+
+        const key =
+            dateKey(
+                year,
+                month,
+                day
+            );
+
+
+        const cell =
+            document.createElement(
+                "div"
+            );
+
+        cell.className =
+            "day";
+
+
+        const now =
+            new Date();
+
+
+        if(
+
+            now.getFullYear() === year &&
+            now.getMonth() === month &&
+            now.getDate() === day
+
+        ){
+
+            cell.classList.add(
+                "today"
+            );
+
+        }
+
+
+        if(
+            new Date(
+                year,
+                month,
+                day
+            ).getDay() === 0
+        ){
+
+            cell.classList.add(
+                "sun"
+            );
+
+        }
+
+
+        let html =
+            `<div class="num">${day}</div>`;
+
+
+        /* HOLIDAY */
+
+        if(
+            holidays[key]
+        ){
+
+            html += `
+
+                <div class="shift holiday">
+                    🔴 HOLIDAY
+                </div>
+
+                <div class="holiday-name">
+                    ${holidays[key]}
+                </div>
+
+            `;
+
+        }
+
+
+        /* SHIFT */
+
+        if(
+            data[key]
+        ){
+
+            const x =
+                data[key];
+
+            let className = "";
+            let text = "";
+
+
+            if(
+                x.type === "day"
+            ){
+
+                className =
+                    "day-shift";
+
+                text =
+                    "☀️ " +
+                    (x.in || "08:00") +
+                    "→" +
+                    (x.out || "20:00");
+
+            }
+
+
+            if(
+                x.type === "night"
+            ){
+
+                className =
+                    "night-shift";
+
+                text =
+                    "🌙 " +
+                    (x.in || "20:00") +
+                    "→" +
+                    (x.out || "08:00");
+
+            }
+
+
+            if(
+                x.type === "off"
+            ){
+
+                className =
+                    "off-shift";
+
+                text =
+                    "🟢 OFF";
+
+            }
+
+
+            if(
+                x.type === "leave"
+            ){
+
+                className =
+                    "leave-shift";
+
+                text =
+                    "🟡 නිවාඩු";
+
+            }
+
+
+            html += `
+
+                <div class="shift ${className}">
+                    ${text}
+                </div>
+
+            `;
+
+
+            if(
+
+                x.type === "day" ||
+                x.type === "night"
+
+            ){
+
+                const h =
+                    calculateHours(
+                        x.in,
+                        x.out
+                    );
+
+
+                html += `
+
+                    <div class="hours">
+                        ⏱️ ${formatHours(h)}h
+                    </div>
+
+                `;
+
+            }
+
+        }
+
+
+        cell.innerHTML =
+            html;
+
+
+        cell.onclick =
+            () => openModal(key);
+
+
+        calendar.appendChild(
+            cell
+        );
+
+    }
+
+
+    updateSummary();
+
+}
+
+
+/* =========================
+   OPEN SHIFT
+========================= */
+
+function openModal(key){
+
+    selectedDate =
+        key;
+
+
+    document.getElementById(
+        "selectedDate"
+    ).textContent =
+        key;
+
+
+    const data =
+        getData();
+
+
+    const x =
+        data[key];
+
+
+    if(x){
+
+        document.getElementById(
+            "shiftType"
+        ).value =
+            x.type || "";
+
+
+        document.getElementById(
+            "inTime"
+        ).value =
+            x.in || "";
+
+
+        document.getElementById(
+            "outTime"
+        ).value =
+            x.out || "";
+
+    }else{
+
+        document.getElementById(
+            "shiftType"
+        ).value = "";
+
+        document.getElementById(
+            "inTime"
+        ).value = "";
+
+        document.getElementById(
+            "outTime"
+        ).value = "";
+
+    }
+
+
+    document.getElementById(
+        "shiftModal"
+    ).classList.add(
+        "show"
+    );
+
+}
+
+
+function closeModal(){
+
+    document.getElementById(
+        "shiftModal"
+    ).classList.remove(
+        "show"
+    );
+
+}
+
+
+/* =========================
+   DEFAULT TIMES
+========================= */
+
+document.getElementById(
+    "shiftType"
+).addEventListener(
+    "change",
+    function(){
+
+        if(
+            this.value === "day"
+        ){
+
+            document.getElementById(
+                "inTime"
+            ).value =
+                "08:00";
+
+            document.getElementById(
+                "outTime"
+            ).value =
+                "20:00";
+
+        }
+
+
+        if(
+            this.value === "night"
+        ){
+
+            document.getElementById(
+                "inTime"
+            ).value =
+                "20:00";
+
+            document.getElementById(
+                "outTime"
+            ).value =
+                "08:00";
+
+        }
+
+
+        if(
+
+            this.value === "off" ||
+            this.value === "leave"
+
+        ){
+
+            document.getElementById(
+                "inTime"
+            ).value = "";
+
+            document.getElementById(
+                "outTime"
+            ).value = "";
+
+        }
+
+    }
+);
+
+
+/* =========================
+   SAVE
+========================= */
+
+function saveShift(){
+
+    const type =
+        document.getElementById(
+            "shiftType"
+        ).value;
+
+
+    if(!type){
+
+        alert(
+            "Status එක select කරන්න."
+        );
+
+        return;
+
+    }
+
+
+    const data =
+        getData();
+
+
+    data[selectedDate] = {
+
+        type:type,
+
+        in:
+            document.getElementById(
+                "inTime"
+            ).value,
+
+        out:
+            document.getElementById(
+                "outTime"
+            ).value
+
+    };
+
+
+    saveData(
+        data
+    );
+
+
+    closeModal();
+
+    renderCalendar();
+
+}
+
+
+/* =========================
+   DELETE
+========================= */
+
+function deleteShift(){
+
+    const data =
+        getData();
+
+
+    delete data[
+        selectedDate
+    ];
+
+
+    saveData(
+        data
+    );
+
+
+    closeModal();
+
+    renderCalendar();
+
+}
+
+
+/* =========================
+   SUMMARY
+========================= */
+
+function updateSummary(){
+
+    const year =
+        currentDate.getFullYear();
+
+    const month =
+        currentDate.getMonth();
+
+    const data =
+        getData();
+
+
+    let dayCount = 0;
+    let nightCount = 0;
+    let offCount = 0;
+    let leaveCount = 0;
+    let totalHours = 0;
+
+
+    const totalDays =
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+
+    for(
+        let i = 1;
+        i <= totalDays;
+        i++
+    ){
+
+        const key =
+            dateKey(
+                year,
+                month,
+                i
+            );
+
+
+        const x =
+            data[key];
+
+
+        if(!x){
+            continue;
+        }
+
+
+        if(x.type === "day"){
+            dayCount++;
+        }
+
+        if(x.type === "night"){
+            nightCount++;
+        }
+
+        if(x.type === "off"){
+            offCount++;
+        }
+
+        if(x.type === "leave"){
+            leaveCount++;
+        }
+
+
+        if(
+
+            x.type === "day" ||
+            x.type === "night"
+
+        ){
+
+            totalHours +=
+                calculateHours(
+                    x.in,
+                    x.out
+                );
+
+        }
+
+    }
+
+
+    document.getElementById(
+        "dayCount"
+    ).textContent =
+        dayCount;
+
+
+    document.getElementById(
+        "nightCount"
+    ).textContent =
+        nightCount;
+
+
+    document.getElementById(
+        "offCount"
+    ).textContent =
+        offCount;
+
+
+    document.getElementById(
+        "leaveCount"
+    ).textContent =
+        leaveCount;
+
+
+    document.getElementById(
+        "hoursCount"
+    ).textContent =
+        formatHours(
+            totalHours
+        ) + "h";
+
+}
+
+
+/* =========================
+   MONTH
+========================= */
+
+function prevMonth(){
+
+    currentDate.setMonth(
+        currentDate.getMonth() - 1
+    );
+
+    renderCalendar();
+
+}
+
+
+function nextMonth(){
+
+    currentDate.setMonth(
+        currentDate.getMonth() + 1
+    );
+
+    renderCalendar();
+
+}
+
+
+function todayMonth(){
+
+    currentDate =
+        new Date();
+
+    renderCalendar();
+
+}
+
+
+/* =========================
+   OUTPUT MENU
+========================= */
+
+function showOutputMenu(){
+
+    document.getElementById(
+        "outputMenu"
+    ).classList.add(
+        "show"
+    );
+
+}
+
+
+function closeOutputMenu(){
+
+    document.getElementById(
+        "outputMenu"
+    ).classList.remove(
+        "show"
+    );
+
+}
+
+
+/* =========================
+   EXPORT EXCEL
+========================= */
+
+function exportExcel(){
+
+    if(
+        typeof XLSX === "undefined"
+    ){
+
+        alert(
+            "Excel library එක load වෙලා නැහැ. Internet ON කරන්න."
+        );
+
+        return;
+
+    }
+
+
+    const year =
+        currentDate.getFullYear();
+
+    const month =
+        currentDate.getMonth();
+
+    const data =
+        getData();
+
+    const rows = [];
+
+
+    const totalDays =
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+
+    for(
+        let day = 1;
+        day <= totalDays;
+        day++
+    ){
+
+        const key =
+            dateKey(
+                year,
+                month,
+                day
+            );
+
+
+        const x =
+            data[key];
+
+
+        let shift = "";
+        let inTime = "";
+        let outTime = "";
+        let workedHours = 0;
+        let holiday = "";
+
+
+        if(
+            holidays[key]
+        ){
+
+            holiday =
+                holidays[key];
+
+        }
+
+
+        if(x){
+
+            shift =
+                x.type || "";
+
+            inTime =
+                x.in || "";
+
+            outTime =
+                x.out || "";
+
+
+            if(
+
+                x.type === "day" ||
+                x.type === "night"
+
+            ){
+
+                workedHours =
+                    calculateHours(
+                        x.in,
+                        x.out
+                    );
+
+            }
+
+        }
+
+
+        rows.push({
+
+            Date:key,
+
+            Shift:shift,
+
+            IN:inTime,
+
+            OUT:outTime,
+
+            "Worked Hours":
+                workedHours,
+
+            Holiday:holiday
+
+        });
+
+    }
+
+
+    const ws =
+        XLSX.utils.json_to_sheet(
+            rows
+        );
+
+
+    const wb =
+        XLSX.utils.book_new();
+
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        "Job Calendar"
+    );
+
+
+    XLSX.writeFile(
+
+        wb,
+
+        "Job-Calendar-" +
+        year +
+        "-" +
+        String(
+            month + 1
+        ).padStart(2,"0") +
+        ".xlsx"
+
+    );
+
+
+    closeOutputMenu();
+
+}
+
+
+/* =========================
+   EXPORT CSV
+========================= */
+
+function exportCSV(){
+
+    const year =
+        currentDate.getFullYear();
+
+    const month =
+        currentDate.getMonth();
+
+    const data =
+        getData();
+
+
+    let csv =
+        "\uFEFF";
+
+
+    csv +=
+        "Date,Shift,IN,OUT,Worked Hours,Holiday\n";
+
+
+    const totalDays =
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+
+    function clean(value){
+
+        return '"' +
+            String(
+                value ?? ""
+            ).replace(
+                /"/g,
+                '""'
+            ) +
+            '"';
+
+    }
+
+
+    for(
+        let day = 1;
+        day <= totalDays;
+        day++
+    ){
+
+        const key =
+            dateKey(
+                year,
+                month,
+                day
+            );
+
+
+        const x =
+            data[key];
+
+
+        let shift = "";
+        let inTime = "";
+        let outTime = "";
+        let workedHours = 0;
+        let holiday = "";
+
+
+        if(
+            holidays[key]
+        ){
+
+            holiday =
+                holidays[key];
+
+        }
+
+
+        if(x){
+
+            shift =
+                x.type || "";
+
+            inTime =
+                x.in || "";
+
+            outTime =
+                x.out || "";
+
+
+            if(
+
+                x.type === "day" ||
+                x.type === "night"
+
+            ){
+
+                workedHours =
+                    calculateHours(
+                        x.in,
+                        x.out
+                    );
+
+            }
+
+        }
+
+
+        csv +=
+
+            clean(key) + "," +
+            clean(shift) + "," +
+            clean(inTime) + "," +
+            clean(outTime) + "," +
+            clean(
+                formatHours(
+                    workedHours
+                )
+            ) + "," +
+            clean(holiday) +
+            "\n";
+
+    }
+
+
+    const blob =
+        new Blob(
+            [csv],
+            {
+                type:
+                "text/csv;charset=utf-8;"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        url;
+
+
+    link.download =
+
+        "Job-Calendar-" +
+        year +
+        "-" +
+        String(
+            month + 1
+        ).padStart(2,"0") +
+        ".csv";
+
+
+    document.body.appendChild(
+        link
+    );
+
+
+    link.click();
+
+
+    document.body.removeChild(
+        link
+    );
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+
+    closeOutputMenu();
+
+}
+
+
+/* =========================
+   IMPORT
+========================= */
+
+function importData(event){
+
+    const file =
+        event.target.files[0];
+
+
+    if(!file){
+        return;
+    }
+
+
+    const name =
+        file.name.toLowerCase();
+
+
+    if(
+        name.endsWith(".csv")
+    ){
+
+        importCSV(file);
+
+    }else{
+
+        importExcel(file);
+
+    }
+
+
+    event.target.value = "";
+
+}
+
+
+/* =========================
+   EXCEL IMPORT
+========================= */
+
+function importExcel(file){
+
+    if(
+        typeof XLSX === "undefined"
+    ){
+
+        alert(
+            "Excel library එක load වෙලා නැහැ. Internet ON කරන්න."
+        );
+
+        return;
+
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e){
+
+            try{
+
+                const workbook =
+                    XLSX.read(
+                        e.target.result,
+                        {
+                            type:"array",
+                            cellDates:true
+                        }
+                    );
+
+
+                const sheet =
+                    workbook.Sheets[
+                        workbook.SheetNames[0]
+                    ];
+
+
+                const rows =
+                    XLSX.utils.sheet_to_json(
+                        sheet,
+                        {
+                            defval:""
+                        }
+                    );
+
+
+                importRows(
+                    rows
+                );
+
+            }
+            catch(error){
+
+                console.error(
+                    error
+                );
+
+                alert(
+                    "❌ Excel file එක read කරන්න බැරි වුණා."
+                );
+
+            }
+
+        };
+
+
+    reader.readAsArrayBuffer(
+        file
+    );
+
+}
+
+
+/* =========================
+   CSV IMPORT
+========================= */
+
+function importCSV(file){
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e){
+
+            try{
+
+                let text =
+                    e.target.result;
+
+
+                text =
+                    text.replace(
+                        /^\uFEFF/,
+                        ""
+                    );
+
+
+                const rows =
+                    parseCSV(
+                        text
+                    );
+
+
+                if(
+                    rows.length < 2
+                ){
+
+                    alert(
+                        "❌ CSV file එකේ data නැහැ."
+                    );
+
+                    return;
+
+                }
+
+
+                const headers =
+                    rows[0];
+
+
+                const objects = [];
+
+
+                for(
+                    let i = 1;
+                    i < rows.length;
+                    i++
+                ){
+
+                    if(
+                        rows[i].length === 0
+                    ){
+
+                        continue;
+
+                    }
+
+
+                    const obj = {};
+
+
+                    headers.forEach(
+                        function(header,index){
+
+                            obj[
+                                header.trim()
+                            ] =
+                                rows[i][index] || "";
+
+                        }
+                    );
+
+
+                    objects.push(
+                        obj
+                    );
+
+                }
+
+
+                importRows(
+                    objects
+                );
+
+            }
+            catch(error){
+
+                console.error(
+                    error
+                );
+
+                alert(
+                    "❌ CSV file එක read කරන්න බැරි වුණා."
+                );
+
+            }
+
+        };
+
+
+    reader.readAsText(
+        file,
+        "UTF-8"
+    );
+
+}
+
+
+/* =========================
+   IMPORT ROWS
+========================= */
+
+function importRows(rows){
+
+    const data =
+        getData();
+
+
+    let imported = 0;
+
+
+    rows.forEach(
+        function(row){
+
+            const date =
+                normalizeDate(
+                    row["Date"]
+                );
+
+
+            if(!date){
+                return;
+            }
+
+
+            let shift =
+                String(
+                    row["Shift"] || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            if(
+                shift === "day" ||
+                shift.includes("☀️")
+            ){
+
+                shift = "day";
+
+            }
+
+            else if(
+                shift === "night" ||
+                shift.includes("🌙")
+            ){
+
+                shift = "night";
+
+            }
+
+            else if(
+                shift === "off" ||
+                shift.includes("🟢")
+            ){
+
+                shift = "off";
+
+            }
+
+            else if(
+                shift === "leave" ||
+                shift === "නිවාඩු" ||
+                shift.includes("🟡")
+            ){
+
+                shift = "leave";
+
+            }
+
+            else{
+
+                return;
+
+            }
+
+
+            data[date] = {
+
+                type:shift,
+
+                in:
+                    convertTime(
+                        row["IN"]
+                    ),
+
+                out:
+                    convertTime(
+                        row["OUT"]
+                    )
+
+            };
+
+
+            imported++;
+
+        }
+    );
+
+
+    saveData(
+        data
+    );
+
+
+    renderCalendar();
+
+
+    /* IMPORTED DATA තිබෙන මාසයට යන්න */
+
+    if(imported > 0){
+
+        const first =
+            Object.keys(data)
+            .find(
+                key =>
+                rows.some(
+                    row =>
+                    normalizeDate(
+                        row["Date"]
+                    ) === key
+                )
+            );
+
+
+        if(first){
+
+            const parts =
+                first.split("-");
+
+
+            currentDate =
+                new Date(
+                    Number(parts[0]),
+                    Number(parts[1]) - 1,
+                    1
+                );
+
+
+            renderCalendar();
+
+        }
+
+    }
+
+
+    alert(
+        "✅ " +
+        imported +
+        " records imported!"
+    );
+
+}
+
+
+/* =========================
+   DATE NORMALIZE
+========================= */
+
+function normalizeDate(value){
+
+    if(
+        value instanceof Date &&
+        !isNaN(value)
+    ){
+
+        return (
+
+            value.getFullYear() +
+            "-" +
+            String(
+                value.getMonth() + 1
+            ).padStart(2,"0") +
+            "-" +
+            String(
+                value.getDate()
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    if(
+        typeof value === "number"
+    ){
+
+        const d =
+            new Date(
+                Date.UTC(
+                    1899,
+                    11,
+                    30
+                ) +
+                value *
+                86400000
+            );
+
+
+        return (
+
+            d.getUTCFullYear() +
+            "-" +
+            String(
+                d.getUTCMonth() + 1
+            ).padStart(2,"0") +
+            "-" +
+            String(
+                d.getUTCDate()
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    let str =
+        String(
+            value || ""
+        ).trim();
+
+
+    if(
+        /^\d{4}-\d{1,2}-\d{1,2}$/.test(
+            str
+        )
+    ){
+
+        const p =
+            str.split("-");
+
+
+        return (
+
+            p[0] +
+            "-" +
+            String(
+                p[1]
+            ).padStart(2,"0") +
+            "-" +
+            String(
+                p[2]
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    if(
+        /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(
+            str
+        )
+    ){
+
+        const p =
+            str.split("/");
+
+
+        return (
+
+            p[0] +
+            "-" +
+            String(
+                p[1]
+            ).padStart(2,"0") +
+            "-" +
+            String(
+                p[2]
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    let match =
+        str.match(
+            /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/
+        );
+
+
+    if(match){
+
+        return (
+
+            match[3] +
+            "-" +
+            String(
+                match[2]
+            ).padStart(2,"0") +
+            "-" +
+            String(
+                match[1]
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    const parsed =
+        new Date(str);
+
+
+    if(
+        !isNaN(parsed)
+    ){
+
+        return (
+
+            parsed.getFullYear() +
+            "-" +
+            String(
+                parsed.getMonth() + 1
+            ).padStart(2,"0") +
+            "-" +
+            String(
+                parsed.getDate()
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================
+   TIME NORMALIZE
+========================= */
+
+function convertTime(value){
+
+    if(
+        value === null ||
+        value === undefined ||
+        value === ""
+    ){
+
+        return "";
+
+    }
+
+
+    if(
+        value instanceof Date &&
+        !isNaN(value)
+    ){
+
+        return (
+
+            String(
+                value.getHours()
+            ).padStart(2,"0") +
+            ":" +
+            String(
+                value.getMinutes()
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    let str =
+        String(value).trim();
+
+
+    /* 08:00 */
+
+    let match =
+        str.match(
+            /^(\d{1,2}):(\d{1,2})/
+        );
+
+
+    if(match){
+
+        return (
+
+            String(
+                Number(match[1])
+            ).padStart(2,"0") +
+            ":" +
+            String(
+                Number(match[2])
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    /* Excel decimal time */
+
+    const num =
+        Number(str);
+
+
+    if(
+        !isNaN(num) &&
+        num >= 0 &&
+        num < 1
+    ){
+
+        const total =
+            Math.round(
+                num * 1440
+            ) % 1440;
+
+
+        return (
+
+            String(
+                Math.floor(
+                    total / 60
+                )
+            ).padStart(2,"0") +
+            ":" +
+            String(
+                total % 60
+            ).padStart(2,"0")
+
+        );
+
+    }
+
+
+    return str;
+
+}
+
+
+/* =========================
+   CSV PARSER
+========================= */
+
+function parseCSV(text){
+
+    const rows = [];
+
+    let row = [];
+
+    let value = "";
+
+    let quotes = false;
+
+
+    for(
+        let i = 0;
+        i < text.length;
+        i++
+    ){
+
+        const c =
+            text[i];
+
+        const next =
+            text[i + 1];
+
+
+        if(
+            c === '"' &&
+            quotes &&
+            next === '"'
+        ){
+
+            value += '"';
+
+            i++;
+
+            continue;
+
+        }
+
+
+        if(
+            c === '"'
+        ){
+
+            quotes =
+                !quotes;
+
+            continue;
+
+        }
+
+
+        if(
+            c === "," &&
+            !quotes
+        ){
+
+            row.push(
+                value
+            );
+
+            value = "";
+
+            continue;
+
+        }
+
+
+        if(
+
+            (c === "\n" ||
+             c === "\r") &&
+            !quotes
+
+        ){
+
+            if(
+                c === "\r" &&
+                next === "\n"
+            ){
+
+                i++;
+
+            }
+
+
+            row.push(
+                value
+            );
+
+
+            rows.push(
+                row
+            );
+
+
+            row = [];
+
+            value = "";
+
+            continue;
+
+        }
+
+
+        value += c;
+
+    }
+
+
+    if(
+        value.length ||
+        row.length
+    ){
+
+        row.push(
+            value
+        );
+
+        rows.push(
+            row
+        );
+
+    }
+
+
+    return rows;
+
+}
+
+
+/* =========================
+   CLOSE MODALS
+========================= */
+
+document.getElementById(
+    "shiftModal"
+).addEventListener(
+    "click",
+    function(e){
+
+        if(
+            e.target === this
+        ){
+
+            closeModal();
+
+        }
+
+    }
+);
+
+
+document.getElementById(
+    "outputMenu"
+).addEventListener(
+    "click",
+    function(e){
+
+        if(
+            e.target === this
+        ){
+
+            closeOutputMenu();
+
+        }
+
+    }
+);
+
+
+/* =========================
+   START APP
+========================= */
+
+renderCalendar();
+
+</script>
+
+</body>
+</html>
+```
