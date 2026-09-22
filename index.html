@@ -1,456 +1,406 @@
-```html
 <!DOCTYPE html>
 <html lang="si">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<meta name="viewport"
+      content="width=device-width,
+      initial-scale=1,
+      maximum-scale=1,
+      user-scalable=no">
+
+<meta name="theme-color" content="#0f172a">
+<meta name="description" content="Sri Lanka Job Calendar">
 
 <title>Sri Lanka Job Calendar</title>
 
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-
 <style>
 *{
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
-}
-
-html,body{
-    margin:0;
-    padding:0;
-    width:100%;
-    min-height:100%;
-    overflow-x:hidden;
+  box-sizing:border-box;
 }
 
 body{
-    background:#0f172a;
-    color:#fff;
-    font-family:Arial,"Noto Sans Sinhala",sans-serif;
+  margin:0;
+  font-family:Arial,"Noto Sans Sinhala",sans-serif;
+  background:#f1f5f9;
+  color:#0f172a;
 }
 
 .app{
-    width:100%;
-    max-width:600px;
-    margin:0 auto;
-    padding:7px;
+  max-width:1100px;
+  margin:auto;
+  padding:10px;
 }
 
 /* HEADER */
+
 header{
-    background:#1e293b;
-    border-radius:12px;
-    padding:12px;
-    margin-bottom:7px;
+  background:#0f172a;
+  color:white;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:10px;
 }
 
-header h2{
-    margin:0;
-    font-size:18px;
+header h1{
+  margin:0 0 5px;
+  font-size:21px;
 }
 
 header p{
-    margin:3px 0 0;
-    color:#94a3b8;
-    font-size:9px;
+  margin:0;
+  color:#cbd5e1;
+  font-size:12px;
 }
 
-/* NAVIGATION */
-.nav{
-    width:100%;
-    display:grid;
-    grid-template-columns:34px 1fr 34px;
-    gap:4px;
-    margin-bottom:6px;
+/* BUTTONS */
+
+.toolbar{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
 }
 
-.nav button,
-.inputBtn,
-.outputBtn{
-    height:34px;
-    border:1px solid #334155;
-    border-radius:7px;
-    background:#1e293b;
-    color:#fff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:11px;
-    font-weight:bold;
-    cursor:pointer;
+button{
+  border:0;
+  border-radius:11px;
+  padding:10px 13px;
+  font-weight:bold;
+  cursor:pointer;
+  background:#e2e8f0;
+  color:#0f172a;
 }
 
-.nav button:active,
-.inputBtn:active,
-.outputBtn:active{
-    transform:scale(.97);
+button.primary{
+  background:#2563eb;
+  color:white;
 }
 
-.month{
-    height:34px;
-    background:#1e293b;
-    border-radius:7px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:14px;
-    font-weight:bold;
+button.dark{
+  background:#0f172a;
+  color:white;
 }
 
-/* SECOND NAV */
-.actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:5px;
-    margin-bottom:7px;
+button.danger{
+  background:#fee2e2;
+  color:#991b1b;
 }
 
-.inputBtn,
-.outputBtn{
-    width:100%;
-    height:35px;
-    background:#1e293b;
+/* MONTH */
+
+.monthbar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:15px;
+  padding:8px;
+  margin-bottom:8px;
 }
 
-.inputBtn input{
-    display:none;
+.monthbar h2{
+  flex:1;
+  text-align:center;
+  font-size:18px;
+  margin:0;
 }
 
-/* LEGEND */
-.legend{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:3px;
-    margin-bottom:6px;
+/* WEEK */
+
+.weekdays,
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:4px;
 }
 
-.legend span{
-    padding:5px 1px;
-    border-radius:5px;
-    text-align:center;
-    font-size:7px;
-    font-weight:bold;
-    white-space:nowrap;
+.weekday{
+  text-align:center;
+  font-size:10px;
+  color:#64748b;
+  font-weight:bold;
+  padding:7px 0;
 }
-
-.l-day{background:#15803d}
-.l-night{background:#1d4ed8}
-.l-off{background:#475569}
-.l-leave{background:#ca8a04}
-.l-holiday{background:#991b1b}
 
 /* CALENDAR */
-.calendar{
-    width:100%;
-    background:#1e293b;
-    border-radius:10px;
-    padding:4px;
+
+.daycell{
+  min-height:90px;
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:5px;
+  overflow:hidden;
+  cursor:pointer;
 }
 
-.week,
-.days{
-    width:100%;
-    display:grid;
-    grid-template-columns:repeat(7,minmax(0,1fr));
-    gap:2px;
+.daycell.empty{
+  background:transparent;
+  border:0;
+  cursor:default;
 }
 
-.week{
-    margin-bottom:2px;
+.daycell.today{
+  outline:2px solid #2563eb;
 }
 
-.week div{
-    min-width:0;
-    text-align:center;
-    color:#94a3b8;
-    font-size:8px;
-    font-weight:bold;
-    padding:3px 0;
-}
-
-.day{
-    min-width:0;
-    width:100%;
-    min-height:66px;
-    background:#0f172a;
-    border:1px solid #263449;
-    border-radius:6px;
-    padding:3px 2px;
-    cursor:pointer;
-    overflow:hidden;
-}
-
-.day:active{
-    transform:scale(.98);
-}
-
-.empty{
-    background:transparent;
-    border:0;
-    cursor:default;
-}
-
-.num{
-    font-size:10px;
-    font-weight:bold;
-    line-height:12px;
-}
-
-.sun .num{
-    color:#f87171;
-}
-
-.today{
-    border:2px solid #facc15;
-}
-
-/* SHIFT */
-.shift{
-    width:100%;
-    margin-top:2px;
-    padding:3px 1px;
-    border-radius:4px;
-    text-align:center;
-    font-size:6px;
-    line-height:8px;
-    font-weight:bold;
-    white-space:nowrap;
-    overflow:hidden;
-}
-
-.day-shift{background:#15803d}
-.night-shift{background:#1d4ed8}
-.off-shift{background:#475569}
-.leave-shift{background:#ca8a04}
-.holiday{background:#991b1b}
-
-.hours{
-    margin-top:2px;
-    text-align:center;
-    color:#facc15;
-    font-size:6px;
-    font-weight:bold;
-}
-
-.holiday-name{
-    margin-top:1px;
-    color:#fca5a5;
-    font-size:5px;
-    text-align:center;
-    line-height:6px;
-    overflow:hidden;
-}
-
-/* SUMMARY */
-.summary{
-    width:100%;
-    display:grid;
-    grid-template-columns:repeat(5,minmax(0,1fr));
-    gap:3px;
-    margin-top:6px;
-}
-
-.card{
-    min-width:0;
-    background:#1e293b;
-    border-radius:7px;
-    padding:6px 2px;
-    text-align:center;
-}
-
-.card small{
-    display:block;
-    color:#94a3b8;
-    font-size:6px;
-    white-space:nowrap;
-}
-
-.card b{
-    display:block;
-    margin-top:2px;
-    font-size:13px;
-}
-
-/* MODAL */
-.modal,
-.outputMenu{
-    position:fixed;
-    inset:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,.75);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    padding:15px;
-    z-index:1000;
-}
-
-.modal.show,
-.outputMenu.show{
-    display:flex;
-}
-
-.box,
-.outputBox{
-    width:100%;
-    max-width:340px;
-    background:#1e293b;
-    border-radius:14px;
-    padding:16px;
-}
-
-.box h3,
-.outputBox h3{
-    margin:0 0 5px;
-    font-size:17px;
+.daycell.holiday{
+  background:#fff1f2;
 }
 
 .date{
-    color:#94a3b8;
+  font-size:13px;
+  font-weight:bold;
+}
+
+.holiday-name{
+  font-size:8px;
+  color:#be123c;
+  line-height:1.1;
+  margin-top:2px;
+}
+
+/* SHIFTS */
+
+.shift{
+  margin-top:5px;
+  padding:4px;
+  border-radius:7px;
+  font-size:9px;
+  font-weight:bold;
+  line-height:1.2;
+}
+
+.shift.day{
+  background:#dbeafe;
+  color:#1d4ed8;
+}
+
+.shift.night{
+  background:#ede9fe;
+  color:#6d28d9;
+}
+
+.shift.off{
+  background:#dcfce7;
+  color:#15803d;
+}
+
+.shift.leave{
+  background:#fef3c7;
+  color:#a16207;
+}
+
+.hours{
+  font-size:8px;
+  color:#475569;
+  margin-top:3px;
+}
+
+/* LEGEND */
+
+.legend{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:13px;
+  padding:9px;
+  margin-top:10px;
+}
+
+.legend span{
+  padding:5px 7px;
+  border-radius:7px;
+  font-size:10px;
+  font-weight:bold;
+}
+
+.l-day{
+  background:#dbeafe;
+  color:#1d4ed8;
+}
+
+.l-night{
+  background:#ede9fe;
+  color:#6d28d9;
+}
+
+.l-off{
+  background:#dcfce7;
+  color:#15803d;
+}
+
+.l-leave{
+  background:#fef3c7;
+  color:#a16207;
+}
+
+/* SUMMARY */
+
+.summary{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin-top:10px;
+}
+
+.stat{
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:13px;
+  padding:10px;
+}
+
+.stat small{
+  display:block;
+  color:#64748b;
+  font-size:10px;
+}
+
+.stat strong{
+  font-size:19px;
+}
+
+/* MODAL */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.65);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:100;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modalbox{
+  width:min(560px,100%);
+  background:white;
+  border-radius:20px 20px 0 0;
+  padding:18px;
+  max-height:90vh;
+  overflow:auto;
+}
+
+.modalbox h3{
+  margin:0 0 15px;
+}
+
+.formrow{
+  margin-bottom:12px;
+}
+
+.formrow label{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  font-weight:bold;
+  margin-bottom:5px;
+}
+
+input,
+select{
+  width:100%;
+  padding:11px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:white;
+}
+
+.modal-actions{
+  display:flex;
+  gap:8px;
+  margin-top:14px;
+}
+
+.modal-actions button{
+  flex:1;
+}
+
+.info{
+  color:#64748b;
+  font-size:12px;
+  line-height:1.5;
+}
+
+hr{
+  border:0;
+  border-top:1px solid #e2e8f0;
+  margin:16px 0;
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+  .app{
+    padding:7px;
+  }
+
+  header{
+    border-radius:14px;
+    padding:13px;
+  }
+
+  header h1{
+    font-size:18px;
+  }
+
+  .toolbar button{
+    flex:1;
+    min-width:30%;
+    padding:9px 7px;
     font-size:11px;
-    margin-bottom:12px;
+  }
+
+  .daycell{
+    min-height:76px;
+    padding:4px;
+  }
+
+  .weekday{
+    font-size:8px;
+  }
+
+  .shift{
+    font-size:8px;
+    padding:3px;
+  }
+
+  .holiday-name{
+    font-size:7px;
+  }
+
+  .summary{
+    grid-template-columns:repeat(2,1fr);
+  }
 }
 
-label.formLabel{
-    display:block;
-    color:#cbd5e1;
-    font-size:11px;
-    margin:9px 0 4px;
-}
+@media(max-width:380px){
 
-select,
-input[type="time"]{
-    width:100%;
-    height:40px;
-    background:#0f172a;
-    color:#fff;
-    border:1px solid #475569;
-    border-radius:8px;
-    padding:0 9px;
-    font-size:14px;
-}
+  .daycell{
+    min-height:68px;
+  }
 
-.buttons{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:6px;
-    margin-top:13px;
-}
+  .holiday-name{
+    display:none;
+  }
 
-.buttons button,
-.outputButtons button,
-.closeOutput,
-.delete{
-    height:40px;
-    border:0;
-    border-radius:8px;
-    color:#fff;
-    font-weight:bold;
-    cursor:pointer;
-}
+  .shift{
+    font-size:7px;
+  }
 
-.cancel{
-    background:#475569;
-}
-
-.save{
-    background:#16a34a;
-}
-
-.delete{
-    width:100%;
-    margin-top:6px;
-    background:#dc2626;
-}
-
-/* OUTPUT */
-.outputButtons{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:6px;
-    margin-top:12px;
-}
-
-.excelExport{
-    background:#15803d;
-}
-
-.csvExport{
-    background:#2563eb;
-}
-
-.closeOutput{
-    width:100%;
-    margin-top:7px;
-    background:#475569;
-}
-
-/* SMALL PHONES */
-@media(max-width:360px){
-
-    .app{
-        padding:5px;
-    }
-
-    header{
-        padding:10px;
-    }
-
-    header h2{
-        font-size:16px;
-    }
-
-    .nav{
-        grid-template-columns:30px 1fr 30px;
-    }
-
-    .nav button,
-    .inputBtn,
-    .outputBtn,
-    .month{
-        height:32px;
-        font-size:9px;
-    }
-
-    .day{
-        min-height:59px;
-        padding:2px 1px;
-    }
-
-    .num{
-        font-size:9px;
-    }
-
-    .shift{
-        font-size:5px;
-        line-height:7px;
-        padding:2px 0;
-    }
-
-    .hours{
-        font-size:5px;
-    }
-
-    .holiday-name{
-        font-size:4px;
-    }
-
-    .legend span{
-        font-size:6px;
-    }
-
-    .card{
-        padding:5px 1px;
-    }
-
-    .card small{
-        font-size:5px;
-    }
-
-    .card b{
-        font-size:11px;
-    }
+  .hours{
+    font-size:7px;
+  }
 }
 </style>
 </head>
@@ -460,117 +410,115 @@ input[type="time"]{
 <div class="app">
 
 <header>
-    <h2>🇱🇰 Sri Lanka Job Calendar</h2>
-    <p>Shift • Leave • Working Hours • Excel • CSV</p>
+  <h1>📅 Sri Lanka Job Calendar</h1>
+  <p>
+    ☀ DAY 08:00–20:00 ·
+    🌙 NIGHT 20:00–08:00 ·
+    OFF · නිවාඩු
+  </p>
 </header>
 
-<!-- MONTH NAVIGATION -->
-<div class="nav">
+<div class="toolbar">
 
-    <button onclick="prevMonth()">◀</button>
+  <button class="primary"
+          onclick="openShiftModal()">
+    ＋ Shift
+  </button>
 
-    <div class="month" id="monthTitle"></div>
+  <button onclick="openIOModal()">
+    📁 INPUT / OUTPUT
+  </button>
 
-    <button onclick="nextMonth()">▶</button>
-
-</div>
-
-<!-- ACTION BUTTONS -->
-<div class="actions">
-
-    <label class="inputBtn">
-        📥 INPUT
-        <input
-            type="file"
-            id="dataInput"
-            accept=".xlsx,.xls,.csv"
-            onchange="importData(event)"
-        >
-    </label>
-
-    <button
-        class="outputBtn"
-        onclick="showOutputMenu()">
-        📤 OUTPUT
-    </button>
+  <button onclick="goToday()">
+    📍 අද
+  </button>
 
 </div>
 
-<!-- TODAY -->
-<button
-    onclick="todayMonth()"
-    style="
-        width:100%;
-        height:32px;
-        margin-bottom:6px;
-        background:#1e293b;
-        color:white;
-        border:1px solid #334155;
-        border-radius:7px;
-        font-size:10px;
-        font-weight:bold;
-    ">
-    📅 අද මාසයට යන්න
-</button>
+<div class="monthbar">
 
-<!-- LEGEND -->
+  <button onclick="changeMonth(-1)">
+    ◀
+  </button>
+
+  <h2 id="monthTitle"></h2>
+
+  <button onclick="changeMonth(1)">
+    ▶
+  </button>
+
+</div>
+
+<div class="weekdays">
+
+  <div class="weekday">ඉරිදා</div>
+  <div class="weekday">සඳුදා</div>
+  <div class="weekday">අඟහරුවාදා</div>
+  <div class="weekday">බදාදා</div>
+  <div class="weekday">බ්‍රහස්පතින්දා</div>
+  <div class="weekday">සිකුරාදා</div>
+  <div class="weekday">සෙනසුරාදා</div>
+
+</div>
+
+<div id="calendar"
+     class="calendar">
+</div>
+
 <div class="legend">
 
-    <span class="l-day">☀️ DAY</span>
-    <span class="l-night">🌙 NIGHT</span>
-    <span class="l-off">🟢 OFF</span>
-    <span class="l-leave">🟡 නිවාඩු</span>
-    <span class="l-holiday">🔴 HOLIDAY</span>
+  <span class="l-day">
+    ☀ DAY
+  </span>
+
+  <span class="l-night">
+    🌙 NIGHT
+  </span>
+
+  <span class="l-off">
+    🟢 OFF
+  </span>
+
+  <span class="l-leave">
+    🟡 නිවාඩු
+  </span>
 
 </div>
 
-<!-- CALENDAR -->
-<div class="calendar">
-
-    <div class="week">
-        <div>ඉරි</div>
-        <div>සඳු</div>
-        <div>අඟ</div>
-        <div>බදා</div>
-        <div>බ්‍රහ</div>
-        <div>සිකු</div>
-        <div>සෙන</div>
-    </div>
-
-    <div
-        class="days"
-        id="calendarDays">
-    </div>
-
-</div>
-
-<!-- SUMMARY -->
 <div class="summary">
 
-    <div class="card">
-        <small>☀️ DAY</small>
-        <b id="dayCount">0</b>
-    </div>
+  <div class="stat">
+    <small>DAY</small>
+    <strong id="dayCount">0</strong>
+  </div>
 
-    <div class="card">
-        <small>🌙 NIGHT</small>
-        <b id="nightCount">0</b>
-    </div>
+  <div class="stat">
+    <small>NIGHT</small>
+    <strong id="nightCount">0</strong>
+  </div>
 
-    <div class="card">
-        <small>🟢 OFF</small>
-        <b id="offCount">0</b>
-    </div>
+  <div class="stat">
+    <small>OFF</small>
+    <strong id="offCount">0</strong>
+  </div>
 
-    <div class="card">
-        <small>🟡 LEAVE</small>
-        <b id="leaveCount">0</b>
-    </div>
+  <div class="stat">
+    <small>නිවාඩු</small>
+    <strong id="leaveCount">0</strong>
+  </div>
 
-    <div class="card">
-        <small>⏱️ පැය</small>
-        <b id="hoursCount">0h</b>
-    </div>
+</div>
+
+<div class="stat"
+     style="margin-top:8px;margin-bottom:20px">
+
+  <small>
+    මේ මාසයේ වැඩ කළ පැය
+  </small>
+
+  <strong id="hoursCount">
+    0 h
+  </strong>
 
 </div>
 
@@ -578,2190 +526,2006 @@ input[type="time"]{
 
 
 <!-- SHIFT MODAL -->
-<div
-    class="modal"
-    id="shiftModal">
 
-    <div class="box">
+<div id="shiftModal"
+     class="modal"
+     onclick="backdropClose(event,'shiftModal')">
 
-        <h3>📅 Shift / නිවාඩු</h3>
+<div class="modalbox">
 
-        <div
-            class="date"
-            id="selectedDate">
-        </div>
+<h3 id="shiftTitle">
+  Shift එක දාන්න
+</h3>
 
-        <label class="formLabel">
-            Status
-        </label>
+<div class="formrow">
 
-        <select id="shiftType">
+<label>
+  දිනය
+</label>
 
-            <option value="">
-                Select
-            </option>
+<input id="shiftDate"
+       type="date">
 
-            <option value="day">
-                ☀️ DAY
-            </option>
+</div>
 
-            <option value="night">
-                🌙 NIGHT
-            </option>
+<div class="formrow">
 
-            <option value="off">
-                🟢 OFF
-            </option>
+<label>
+  Shift
+</label>
 
-            <option value="leave">
-                🟡 නිවාඩු
-            </option>
+<select id="shiftType"
+        onchange="updateShiftPreview()">
 
-        </select>
+<option value="day">
+  ☀ DAY — 08:00 → 20:00
+</option>
 
-        <label class="formLabel">
-            🟢 IN
-        </label>
+<option value="night">
+  🌙 NIGHT — 20:00 → 08:00
+</option>
 
-        <input
-            type="time"
-            id="inTime"
-        >
+<option value="off">
+  🟢 OFF
+</option>
 
-        <label class="formLabel">
-            🔴 OUT
-        </label>
+<option value="leave">
+  🟡 නිවාඩු
+</option>
 
-        <input
-            type="time"
-            id="outTime"
-        >
+</select>
 
-        <div class="buttons">
+</div>
 
-            <button
-                class="cancel"
-                onclick="closeModal()">
-                Cancel
-            </button>
+<p id="shiftPreview"
+   class="info">
+</p>
 
-            <button
-                class="save"
-                onclick="saveShift()">
-                💾 Save
-            </button>
+<div class="modal-actions">
 
-        </div>
+<button class="dark"
+        onclick="saveShift()">
+  Save
+</button>
 
-        <button
-            class="delete"
-            onclick="deleteShift()">
-            🗑 Delete
-        </button>
+<button onclick="closeModal('shiftModal')">
+  Cancel
+</button>
 
-    </div>
+</div>
+
+</div>
 </div>
 
 
-<!-- OUTPUT MODAL -->
-<div
-    class="outputMenu"
-    id="outputMenu">
+<!-- INPUT OUTPUT MODAL -->
 
-    <div class="outputBox">
+<div id="ioModal"
+     class="modal"
+     onclick="backdropClose(event,'ioModal')">
 
-        <h3>📤 OUTPUT</h3>
+<div class="modalbox">
 
-        <div
-            style="
-                color:#94a3b8;
-                font-size:11px;
-                margin-top:3px;
-            ">
-            File type එක තෝරන්න
-        </div>
+<h3>
+  📁 INPUT / OUTPUT
+</h3>
 
-        <div class="outputButtons">
+<p class="info">
 
-            <button
-                class="excelExport"
-                onclick="exportExcel()">
-                📊 Excel
-            </button>
+Excel / CSV files වලින්
+data import කරන්න පුළුවන්.
 
-            <button
-                class="csvExport"
-                onclick="exportCSV()">
-                📄 CSV
-            </button>
+Export කරලා previous months
+backup කරගන්නත් පුළුවන්.
 
-        </div>
+</p>
 
-        <button
-            class="closeOutput"
-            onclick="closeOutputMenu()">
-            Cancel
-        </button>
+<div class="modal-actions">
 
-    </div>
+<button class="primary"
+        onclick="exportExcel()">
+  Excel OUTPUT
+</button>
+
+<button class="primary"
+        onclick="exportCSV()">
+  CSV OUTPUT
+</button>
+
+</div>
+
+<hr>
+
+<div class="formrow">
+
+<label>
+  Excel / CSV INPUT
+</label>
+
+<input id="importFile"
+       type="file"
+       accept=".xlsx,.xls,.csv"
+       onchange="importFile(this)">
+
+</div>
+
+<p class="info">
+
+Format:
+
+Date, Shift, Start, End, Hours
+
+Example:
+
+2026-09-01,DAY,08:00,20:00,12
+
+</p>
+
+<div class="modal-actions">
+
+<button class="danger"
+        onclick="clearAllData()">
+  සියලු Data මකන්න
+</button>
+
+<button onclick="closeModal('ioModal')">
+  Close
+</button>
+
+</div>
+
+</div>
 </div>
 
 
 <script>
 
-/* =========================
-   VARIABLES
-========================= */
+/* =========================================
+   DATA
+========================================= */
 
-let currentDate = new Date();
-let selectedDate = "";
+const STORAGE_KEY =
+  "sriLankaJobCalendarData";
 
+let data =
+  JSON.parse(
+    localStorage.getItem(STORAGE_KEY) || "{}"
+  );
 
-/* =========================
-   MONTHS
-========================= */
+let currentDate =
+  new Date();
 
-const months = [
-    "ජනවාරි",
-    "පෙබරවාරි",
-    "මාර්තු",
-    "අප්‍රේල්",
-    "මැයි",
-    "ජූනි",
-    "ජූලි",
-    "අගෝස්තු",
-    "සැප්තැම්බර්",
-    "ඔක්තෝබර්",
-    "නොවැම්බර්",
-    "දෙසැම්බර්"
-];
+let editingDate = null;
 
 
-/* =========================
-   HOLIDAYS
-========================= */
+/* =========================================
+   SRI LANKA HOLIDAYS
+========================================= */
 
 const holidays = {
 
-    "2026-01-03":"Duruthu Poya",
-    "2026-01-15":"Thai Pongal",
-    "2026-02-01":"Navam Poya",
-    "2026-02-04":"National Day",
-    "2026-02-15":"Maha Sivarathri",
-    "2026-03-02":"Madin Poya",
-    "2026-03-21":"Eid al-Fitr",
-    "2026-04-01":"Bak Poya",
-    "2026-04-03":"Good Friday",
-    "2026-04-13":"New Year Eve",
-    "2026-04-14":"New Year Day",
-    "2026-05-01":"Vesak Poya / May Day",
-    "2026-05-28":"Eid al-Adha",
-    "2026-05-30":"Adhi Poson Poya",
-    "2026-05-31":"Vesak Holiday",
-    "2026-06-29":"Poson Poya",
-    "2026-07-29":"Esala Poya",
-    "2026-08-26":"Milad-Un-Nabi",
-    "2026-08-27":"Nikini Poya",
-    "2026-09-26":"Binara Poya",
-    "2026-10-25":"Vap Poya",
-    "2026-11-08":"Deepavali",
-    "2026-11-24":"Il Poya",
-    "2026-12-23":"Unduvap Poya",
-    "2026-12-25":"Christmas"
+  "2026-01-03":
+    "Duruthu Full Moon Poya Day",
+
+  "2026-01-15":
+    "Tamil Thai Pongal Day",
+
+  "2026-02-01":
+    "Navam Full Moon Poya Day",
+
+  "2026-02-04":
+    "National Day",
+
+  "2026-03-02":
+    "Madin Full Moon Poya Day",
+
+  "2026-04-01":
+    "Bak Full Moon Poya Day",
+
+  "2026-04-13":
+    "Sinhala & Tamil New Year Eve",
+
+  "2026-04-14":
+    "Sinhala & Tamil New Year",
+
+  "2026-05-01":
+    "Vesak Full Moon Poya Day / May Day",
+
+  "2026-05-02":
+    "Day Following Vesak",
+
+  "2026-05-30":
+    "Poson Full Moon Poya Day",
+
+  "2026-06-29":
+    "Esala Full Moon Poya Day",
+
+  "2026-07-29":
+    "Nikini Full Moon Poya Day",
+
+  "2026-08-27":
+    "Binara Full Moon Poya Day",
+
+  "2026-09-26":
+    "Vap Full Moon Poya Day",
+
+  "2026-10-25":
+    "Ill Full Moon Poya Day",
+
+  "2026-11-24":
+    "Unduvap Full Moon Poya Day",
+
+  "2026-12-23":
+    "Duruthu Full Moon Poya Day"
 
 };
 
 
-/* =========================
-   STORAGE
-========================= */
+/* =========================================
+   MONTH NAMES
+========================================= */
 
-function getData(){
+const monthNames = [
 
-    try{
+  "ජනවාරි",
+  "පෙබරවාරි",
+  "මාර්තු",
+  "අප්‍රේල්",
+  "මැයි",
+  "ජූනි",
+  "ජූලි",
+  "අගෝස්තු",
+  "සැප්තැම්බර්",
+  "ඔක්තෝබර්",
+  "නොවැම්බර්",
+  "දෙසැම්බර්"
 
-        return JSON.parse(
-            localStorage.getItem(
-                "jobCalendarData"
-            ) || "{}"
-        );
+];
 
-    }catch(e){
 
-        return {};
+/* =========================================
+   HELPERS
+========================================= */
 
-    }
+function pad(n){
+
+  return String(n)
+    .padStart(2,"0");
 
 }
 
 
-function saveData(data){
+function makeKey(y,m,d){
 
-    localStorage.setItem(
-        "jobCalendarData",
-        JSON.stringify(data)
+  return (
+    y +
+    "-" +
+    pad(m + 1) +
+    "-" +
+    pad(d)
+  );
+
+}
+
+
+function saveData(){
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(data)
+  );
+
+}
+
+
+function getHours(type){
+
+  if(
+    type === "day" ||
+    type === "night"
+  ){
+
+    return 12;
+
+  }
+
+  return 0;
+
+}
+
+
+/* =========================================
+   RENDER CALENDAR
+========================================= */
+
+function render(){
+
+  const y =
+    currentDate.getFullYear();
+
+  const m =
+    currentDate.getMonth();
+
+  document.getElementById(
+    "monthTitle"
+  ).textContent =
+    monthNames[m] +
+    " " +
+    y;
+
+
+  const calendar =
+    document.getElementById(
+      "calendar"
     );
 
-}
+  calendar.innerHTML = "";
 
 
-/* =========================
-   DATE KEY
-========================= */
+  const firstDay =
+    new Date(y,m,1).getDay();
 
-function dateKey(
-    year,
-    month,
-    day
-){
-
-    return (
-
-        year +
-        "-" +
-        String(month + 1).padStart(2,"0") +
-        "-" +
-        String(day).padStart(2,"0")
-
-    );
-
-}
+  const days =
+    new Date(
+      y,
+      m + 1,
+      0
+    ).getDate();
 
 
-/* =========================
-   HOURS
-========================= */
+  /* EMPTY CELLS */
 
-function calculateHours(
-    start,
-    end
-){
+  for(
+    let i=0;
+    i<firstDay;
+    i++
+  ){
 
-    if(!start || !end){
-        return 0;
-    }
+    const cell =
+      document.createElement(
+        "div"
+      );
 
-    let s =
-        start.split(":").map(Number);
+    cell.className =
+      "daycell empty";
 
-    let e =
-        end.split(":").map(Number);
+    calendar.appendChild(cell);
 
-    let sm =
-        s[0] * 60 + s[1];
-
-    let em =
-        e[0] * 60 + e[1];
-
-    if(em <= sm){
-        em += 1440;
-    }
-
-    return (em - sm) / 60;
-
-}
+  }
 
 
-function formatHours(h){
+  /* DAYS */
 
-    return Number.isInteger(h)
-        ? h
-        : h.toFixed(1);
+  for(
+    let d=1;
+    d<=days;
+    d++
+  ){
 
-}
+    const key =
+      makeKey(y,m,d);
 
+    const cell =
+      document.createElement(
+        "div"
+      );
 
-/* =========================
-   RENDER
-========================= */
-
-function renderCalendar(){
-
-    const year =
-        currentDate.getFullYear();
-
-    const month =
-        currentDate.getMonth();
-
-    document.getElementById(
-        "monthTitle"
-    ).textContent =
-        months[month] + " " + year;
+    cell.className =
+      "daycell";
 
 
-    const calendar =
-        document.getElementById(
-            "calendarDays"
-        );
+    /* TODAY */
 
-    calendar.innerHTML = "";
+    const today =
+      new Date();
 
-
-    const firstDay =
-        new Date(
-            year,
-            month,
-            1
-        ).getDay();
-
-
-    const totalDays =
-        new Date(
-            year,
-            month + 1,
-            0
-        ).getDate();
-
-
-    for(
-        let i = 0;
-        i < firstDay;
-        i++
+    if(
+      y === today.getFullYear() &&
+      m === today.getMonth() &&
+      d === today.getDate()
     ){
 
-        const empty =
-            document.createElement("div");
-
-        empty.className =
-            "day empty";
-
-        calendar.appendChild(
-            empty
-        );
+      cell.classList.add(
+        "today"
+      );
 
     }
 
 
-    const data =
-        getData();
+    /* HOLIDAY */
 
-
-    for(
-        let day = 1;
-        day <= totalDays;
-        day++
+    if(
+      holidays[key]
     ){
 
-        const key =
-            dateKey(
-                year,
-                month,
-                day
-            );
-
-
-        const cell =
-            document.createElement(
-                "div"
-            );
-
-        cell.className =
-            "day";
-
-
-        const now =
-            new Date();
-
-
-        if(
-
-            now.getFullYear() === year &&
-            now.getMonth() === month &&
-            now.getDate() === day
-
-        ){
-
-            cell.classList.add(
-                "today"
-            );
-
-        }
-
-
-        if(
-            new Date(
-                year,
-                month,
-                day
-            ).getDay() === 0
-        ){
-
-            cell.classList.add(
-                "sun"
-            );
-
-        }
-
-
-        let html =
-            `<div class="num">${day}</div>`;
-
-
-        /* HOLIDAY */
-
-        if(
-            holidays[key]
-        ){
-
-            html += `
-
-                <div class="shift holiday">
-                    🔴 HOLIDAY
-                </div>
-
-                <div class="holiday-name">
-                    ${holidays[key]}
-                </div>
-
-            `;
-
-        }
-
-
-        /* SHIFT */
-
-        if(
-            data[key]
-        ){
-
-            const x =
-                data[key];
-
-            let className = "";
-            let text = "";
-
-
-            if(
-                x.type === "day"
-            ){
-
-                className =
-                    "day-shift";
-
-                text =
-                    "☀️ " +
-                    (x.in || "08:00") +
-                    "→" +
-                    (x.out || "20:00");
-
-            }
-
-
-            if(
-                x.type === "night"
-            ){
-
-                className =
-                    "night-shift";
-
-                text =
-                    "🌙 " +
-                    (x.in || "20:00") +
-                    "→" +
-                    (x.out || "08:00");
-
-            }
-
-
-            if(
-                x.type === "off"
-            ){
-
-                className =
-                    "off-shift";
-
-                text =
-                    "🟢 OFF";
-
-            }
-
-
-            if(
-                x.type === "leave"
-            ){
-
-                className =
-                    "leave-shift";
-
-                text =
-                    "🟡 නිවාඩු";
-
-            }
-
-
-            html += `
-
-                <div class="shift ${className}">
-                    ${text}
-                </div>
-
-            `;
-
-
-            if(
-
-                x.type === "day" ||
-                x.type === "night"
-
-            ){
-
-                const h =
-                    calculateHours(
-                        x.in,
-                        x.out
-                    );
-
-
-                html += `
-
-                    <div class="hours">
-                        ⏱️ ${formatHours(h)}h
-                    </div>
-
-                `;
-
-            }
-
-        }
-
-
-        cell.innerHTML =
-            html;
-
-
-        cell.onclick =
-            () => openModal(key);
-
-
-        calendar.appendChild(
-            cell
-        );
+      cell.classList.add(
+        "holiday"
+      );
 
     }
 
 
-    updateSummary();
+    cell.onclick =
+      function(){
 
-}
+        openShiftModal(key);
 
-
-/* =========================
-   OPEN SHIFT
-========================= */
-
-function openModal(key){
-
-    selectedDate =
-        key;
+      };
 
 
-    document.getElementById(
-        "selectedDate"
-    ).textContent =
-        key;
+    /* DATE */
+
+    const date =
+      document.createElement(
+        "div"
+      );
+
+    date.className =
+      "date";
+
+    date.textContent =
+      d;
+
+    cell.appendChild(date);
 
 
-    const data =
-        getData();
+    /* HOLIDAY NAME */
+
+    if(
+      holidays[key]
+    ){
+
+      const holiday =
+        document.createElement(
+          "div"
+        );
+
+      holiday.className =
+        "holiday-name";
+
+      holiday.textContent =
+        "🇱🇰 " +
+        holidays[key];
+
+      cell.appendChild(
+        holiday
+      );
+
+    }
 
 
-    const x =
+    /* SHIFT */
+
+    if(
+      data[key]
+    ){
+
+      const shift =
         data[key];
 
+      const shiftBox =
+        document.createElement(
+          "div"
+        );
 
-    if(x){
+      shiftBox.className =
+        "shift " +
+        shift.type;
 
-        document.getElementById(
-            "shiftType"
-        ).value =
-            x.type || "";
+      shiftBox.textContent =
+        shift.label;
 
-
-        document.getElementById(
-            "inTime"
-        ).value =
-            x.in || "";
+      cell.appendChild(
+        shiftBox
+      );
 
 
-        document.getElementById(
-            "outTime"
-        ).value =
-            x.out || "";
+      /* HOURS */
 
-    }else{
+      if(
+        Number(shift.hours) > 0
+      ){
 
-        document.getElementById(
-            "shiftType"
-        ).value = "";
+        const hours =
+          document.createElement(
+            "div"
+          );
 
-        document.getElementById(
-            "inTime"
-        ).value = "";
+        hours.className =
+          "hours";
 
-        document.getElementById(
-            "outTime"
-        ).value = "";
+        hours.textContent =
+          "⏱ " +
+          shift.hours +
+          " h";
+
+        cell.appendChild(
+          hours
+        );
+
+      }
 
     }
 
 
-    document.getElementById(
-        "shiftModal"
-    ).classList.add(
-        "show"
+    calendar.appendChild(
+      cell
     );
+
+  }
+
+
+  updateSummary();
 
 }
 
 
-function closeModal(){
+/* =========================================
+   SUMMARY
+========================================= */
 
-    document.getElementById(
-        "shiftModal"
-    ).classList.remove(
-        "show"
+function updateSummary(){
+
+  const y =
+    currentDate.getFullYear();
+
+  const m =
+    currentDate.getMonth();
+
+
+  let counts = {
+
+    day:0,
+    night:0,
+    off:0,
+    leave:0,
+    hours:0
+
+  };
+
+
+  Object.entries(data)
+    .forEach(
+      ([date,shift]) => {
+
+        const d =
+          new Date(
+            date +
+            "T00:00:00"
+          );
+
+
+        if(
+          d.getFullYear() === y &&
+          d.getMonth() === m
+        ){
+
+          if(
+            counts[shift.type]
+            !== undefined
+          ){
+
+            counts[
+              shift.type
+            ]++;
+
+          }
+
+
+          counts.hours +=
+            Number(
+              shift.hours || 0
+            );
+
+        }
+
+      }
     );
+
+
+  document.getElementById(
+    "dayCount"
+  ).textContent =
+    counts.day;
+
+
+  document.getElementById(
+    "nightCount"
+  ).textContent =
+    counts.night;
+
+
+  document.getElementById(
+    "offCount"
+  ).textContent =
+    counts.off;
+
+
+  document.getElementById(
+    "leaveCount"
+  ).textContent =
+    counts.leave;
+
+
+  document.getElementById(
+    "hoursCount"
+  ).textContent =
+    counts.hours +
+    " h";
 
 }
 
 
-/* =========================
-   DEFAULT TIMES
-========================= */
+/* =========================================
+   SHIFT MODAL
+========================================= */
 
-document.getElementById(
+function openShiftModal(
+  key = null
+){
+
+  editingDate =
+    key;
+
+
+  document.getElementById(
+    "shiftDate"
+  ).value =
+    key ||
+    makeKey(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate()
+    );
+
+
+  document.getElementById(
     "shiftType"
-).addEventListener(
-    "change",
-    function(){
-
-        if(
-            this.value === "day"
-        ){
-
-            document.getElementById(
-                "inTime"
-            ).value =
-                "08:00";
-
-            document.getElementById(
-                "outTime"
-            ).value =
-                "20:00";
-
-        }
+  ).value =
+    key && data[key]
+      ? data[key].type
+      : "day";
 
 
-        if(
-            this.value === "night"
-        ){
-
-            document.getElementById(
-                "inTime"
-            ).value =
-                "20:00";
-
-            document.getElementById(
-                "outTime"
-            ).value =
-                "08:00";
-
-        }
+  document.getElementById(
+    "shiftTitle"
+  ).textContent =
+    key
+      ? key + " Shift"
+      : "Shift එක දාන්න";
 
 
-        if(
-
-            this.value === "off" ||
-            this.value === "leave"
-
-        ){
-
-            document.getElementById(
-                "inTime"
-            ).value = "";
-
-            document.getElementById(
-                "outTime"
-            ).value = "";
-
-        }
-
-    }
-);
+  updateShiftPreview();
 
 
-/* =========================
-   SAVE
-========================= */
+  document.getElementById(
+    "shiftModal"
+  ).classList.add(
+    "show"
+  );
+
+}
+
+
+function updateShiftPreview(){
+
+  const type =
+    document.getElementById(
+      "shiftType"
+    ).value;
+
+
+  let text = "";
+
+
+  if(
+    type === "day"
+  ){
+
+    text =
+      "☀ DAY: 08:00 → 20:00 = 12 hours";
+
+  }
+
+  else if(
+    type === "night"
+  ){
+
+    text =
+      "🌙 NIGHT: 20:00 → 08:00 (පසුදා) = 12 hours";
+
+  }
+
+  else if(
+    type === "off"
+  ){
+
+    text =
+      "🟢 OFF — අද වැඩ නැහැ";
+
+  }
+
+  else{
+
+    text =
+      "🟡 නිවාඩු — personal leave";
+
+  }
+
+
+  document.getElementById(
+    "shiftPreview"
+  ).textContent =
+    text;
+
+}
+
+
+/* =========================================
+   SAVE SHIFT
+========================================= */
 
 function saveShift(){
 
-    const type =
-        document.getElementById(
-            "shiftType"
-        ).value;
+  const date =
+    document.getElementById(
+      "shiftDate"
+    ).value;
 
 
-    if(!type){
+  const type =
+    document.getElementById(
+      "shiftType"
+    ).value;
 
-        alert(
-            "Status එක select කරන්න."
-        );
 
-        return;
+  if(!date){
+
+    alert(
+      "Date එක select කරන්න."
+    );
+
+    return;
+
+  }
+
+
+  const labels = {
+
+    day:"☀ DAY",
+
+    night:"🌙 NIGHT",
+
+    off:"🟢 OFF",
+
+    leave:"🟡 නිවාඩු"
+
+  };
+
+
+  data[date] = {
+
+    type:type,
+
+    label:labels[type],
+
+    start:
+      type === "day"
+        ? "08:00"
+        : type === "night"
+          ? "20:00"
+          : "",
+
+    end:
+      type === "day"
+        ? "20:00"
+        : type === "night"
+          ? "08:00"
+          : "",
+
+    hours:
+      getHours(type)
+
+  };
+
+
+  saveData();
+
+
+  closeModal(
+    "shiftModal"
+  );
+
+
+  const d =
+    new Date(
+      date +
+      "T00:00:00"
+    );
+
+
+  currentDate =
+    new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      1
+    );
+
+
+  render();
+
+}
+
+
+/* =========================================
+   MONTH NAVIGATION
+========================================= */
+
+function changeMonth(n){
+
+  currentDate =
+    new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + n,
+      1
+    );
+
+  render();
+
+}
+
+
+function goToday(){
+
+  const d =
+    new Date();
+
+  currentDate =
+    new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      1
+    );
+
+  render();
+
+}
+
+
+/* =========================================
+   MODALS
+========================================= */
+
+function closeModal(id){
+
+  document.getElementById(
+    id
+  ).classList.remove(
+    "show"
+  );
+
+}
+
+
+function backdropClose(
+  event,
+  id
+){
+
+  if(
+    event.target.id === id
+  ){
+
+    closeModal(id);
+
+  }
+
+}
+
+
+function openIOModal(){
+
+  document.getElementById(
+    "ioModal"
+  ).classList.add(
+    "show"
+  );
+
+}
+
+
+/* =========================================
+   EXPORT DATA
+========================================= */
+
+function getExportRows(){
+
+  return Object.entries(data)
+    .sort(
+      ([a],[b]) =>
+        a.localeCompare(b)
+    )
+    .map(
+      ([date,v]) => ({
+
+        Date:date,
+
+        Shift:
+          v.type === "leave"
+            ? "LEAVE"
+            : v.type.toUpperCase(),
+
+        Start:
+          v.start || "",
+
+        End:
+          v.end || "",
+
+        Hours:
+          Number(v.hours || 0)
+
+      })
+    );
+
+}
+
+
+/* =========================================
+   CSV EXPORT
+========================================= */
+
+function exportCSV(){
+
+  const rows =
+    getExportRows();
+
+
+  const headers = [
+
+    "Date",
+    "Shift",
+    "Start",
+    "End",
+    "Hours"
+
+  ];
+
+
+  function escapeCSV(value){
+
+    return '"' +
+      String(
+        value ?? ""
+      )
+      .replace(
+        /"/g,
+        '""'
+      ) +
+      '"';
+
+  }
+
+
+  const lines = [
+
+    headers,
+
+    ...rows.map(
+      row =>
+        headers.map(
+          h => row[h]
+        )
+    )
+
+  ];
+
+
+  const csv =
+    "\uFEFF" +
+    lines
+      .map(
+        row =>
+          row
+            .map(
+              escapeCSV
+            )
+            .join(",")
+      )
+      .join("\r\n");
+
+
+  const blob =
+    new Blob(
+      [csv],
+      {
+        type:
+          "text/csv;charset=utf-8"
+      }
+    );
+
+
+  const url =
+    URL.createObjectURL(
+      blob
+    );
+
+
+  const a =
+    document.createElement(
+      "a"
+    );
+
+  a.href = url;
+
+  a.download =
+    "Job-Calendar.csv";
+
+  a.click();
+
+
+  setTimeout(
+    () =>
+      URL.revokeObjectURL(url),
+    1000
+  );
+
+}
+
+
+/* =========================================
+   EXCEL EXPORT
+========================================= */
+
+function exportExcel(){
+
+  /*
+    SheetJS library CDN එක
+    පහළ script එකෙන් load වෙනවා.
+  */
+
+  if(
+    typeof XLSX ===
+    "undefined"
+  ){
+
+    alert(
+      "Excel library එක load වෙලා නැහැ. Internet connection එක check කරන්න."
+    );
+
+    return;
+
+  }
+
+
+  const rows =
+    getExportRows();
+
+
+  const worksheet =
+    XLSX.utils.json_to_sheet(
+      rows
+    );
+
+
+  const workbook =
+    XLSX.utils.book_new();
+
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "Job Calendar"
+  );
+
+
+  XLSX.writeFile(
+    workbook,
+    "Job-Calendar.xlsx"
+  );
+
+}
+
+
+/* =========================================
+   CSV PARSER
+========================================= */
+
+function parseCSV(text){
+
+  const rows = [];
+
+  let row = [];
+
+  let field = "";
+
+  let quote = false;
+
+
+  for(
+    let i=0;
+    i<text.length;
+    i++
+  ){
+
+    const ch =
+      text[i];
+
+    const next =
+      text[i+1];
+
+
+    if(
+      ch === '"'
+    ){
+
+      if(
+        quote &&
+        next === '"'
+      ){
+
+        field += '"';
+
+        i++;
+
+      }
+
+      else{
+
+        quote =
+          !quote;
+
+      }
 
     }
 
+    else if(
+      ch === "," &&
+      !quote
+    ){
 
-    const data =
-        getData();
+      row.push(field);
+
+      field = "";
+
+    }
+
+    else if(
+      (
+        ch === "\n" ||
+        ch === "\r"
+      ) &&
+      !quote
+    ){
+
+      if(
+        ch === "\r" &&
+        next === "\n"
+      ){
+
+        i++;
+
+      }
 
 
-    data[selectedDate] = {
+      row.push(field);
 
-        type:type,
+      field = "";
 
-        in:
-            document.getElementById(
-                "inTime"
-            ).value,
 
-        out:
-            document.getElementById(
-                "outTime"
-            ).value
+      if(
+        row.some(
+          x =>
+            String(x)
+              .trim() !== ""
+        )
+      ){
+
+        rows.push(row);
+
+      }
+
+
+      row = [];
+
+    }
+
+    else{
+
+      field += ch;
+
+    }
+
+  }
+
+
+  if(
+    field.length ||
+    row.length
+  ){
+
+    row.push(field);
+
+    if(
+      row.some(
+        x =>
+          String(x)
+            .trim() !== ""
+      )
+    ){
+
+      rows.push(row);
+
+    }
+
+  }
+
+
+  return rows;
+
+}
+
+
+/* =========================================
+   DATE CONVERSION
+========================================= */
+
+function excelSerialToDate(
+  number
+){
+
+  const date =
+    new Date(
+      Date.UTC(
+        1899,
+        11,
+        30
+      ) +
+      Number(number) *
+      86400000
+    );
+
+
+  return (
+    date.getUTCFullYear() +
+    "-" +
+    pad(
+      date.getUTCMonth()+1
+    ) +
+    "-" +
+    pad(
+      date.getUTCDate()
+    )
+  );
+
+}
+
+
+function normalizeDate(
+  value
+){
+
+  if(
+    value instanceof Date &&
+    !isNaN(value)
+  ){
+
+    return (
+      value.getFullYear() +
+      "-" +
+      pad(
+        value.getMonth()+1
+      ) +
+      "-" +
+      pad(
+        value.getDate()
+      )
+    );
+
+  }
+
+
+  if(
+    typeof value ===
+    "number" &&
+    isFinite(value)
+  ){
+
+    return excelSerialToDate(
+      value
+    );
+
+  }
+
+
+  let s =
+    String(
+      value ?? ""
+    ).trim();
+
+
+  if(!s){
+
+    return "";
+
+  }
+
+
+  /* YYYY-MM-DD */
+
+  if(
+    /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/
+      .test(s)
+  ){
+
+    const p =
+      s.split(
+        /[-/]/
+      );
+
+    return (
+      p[0] +
+      "-" +
+      pad(p[1]) +
+      "-" +
+      pad(p[2])
+    );
+
+  }
+
+
+  /* DD/MM/YYYY */
+
+  if(
+    /^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/
+      .test(s)
+  ){
+
+    const p =
+      s.split(
+        /[-/]/
+      );
+
+    return (
+      p[2] +
+      "-" +
+      pad(p[1]) +
+      "-" +
+      pad(p[0])
+    );
+
+  }
+
+
+  const date =
+    new Date(s);
+
+
+  if(
+    !isNaN(date)
+  ){
+
+    return (
+      date.getFullYear() +
+      "-" +
+      pad(
+        date.getMonth()+1
+      ) +
+      "-" +
+      pad(
+        date.getDate()
+      )
+    );
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================
+   TIME CONVERSION
+========================================= */
+
+function normalizeTime(
+  value
+){
+
+  if(
+    value instanceof Date &&
+    !isNaN(value)
+  ){
+
+    return (
+      pad(
+        value.getHours()
+      ) +
+      ":" +
+      pad(
+        value.getMinutes()
+      )
+    );
+
+  }
+
+
+  if(
+    typeof value ===
+    "number" &&
+    isFinite(value)
+  ){
+
+    let total =
+      Math.round(
+        (value % 1) *
+        1440
+      );
+
+
+    return (
+      pad(
+        Math.floor(
+          total / 60
+        ) % 24
+      ) +
+      ":" +
+      pad(
+        total % 60
+      )
+    );
+
+  }
+
+
+  const s =
+    String(
+      value ?? ""
+    ).trim();
+
+
+  const match =
+    s.match(
+      /(\d{1,2}):(\d{2})/
+    );
+
+
+  if(match){
+
+    return (
+      pad(match[1]) +
+      ":" +
+      match[2]
+    );
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================
+   DETECT SHIFT TYPE
+========================================= */
+
+function detectType(
+  value
+){
+
+  const s =
+    String(
+      value ?? ""
+    )
+    .trim()
+    .toLowerCase();
+
+
+  if(
+    s.includes("night") ||
+    s.includes("🌙")
+  ){
+
+    return "night";
+
+  }
+
+
+  if(
+    s.includes("off") ||
+    s.includes("🟢")
+  ){
+
+    return "off";
+
+  }
+
+
+  if(
+    s.includes("leave") ||
+    s.includes("නිවාඩු") ||
+    s.includes("🟡")
+  ){
+
+    return "leave";
+
+  }
+
+
+  return "day";
+
+}
+
+
+/* =========================================
+   IMPORT FILE
+========================================= */
+
+function importFile(
+  input
+){
+
+  const file =
+    input.files[0];
+
+
+  if(!file){
+
+    return;
+
+  }
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload =
+    function(event){
+
+      try{
+
+        let rows = [];
+
+
+        if(
+          file.name
+            .toLowerCase()
+            .endsWith(".csv")
+        ){
+
+          rows =
+            parseCSV(
+              event.target.result
+            );
+
+        }
+
+        else{
+
+          if(
+            typeof XLSX ===
+            "undefined"
+          ){
+
+            throw new Error(
+              "Excel library unavailable"
+            );
+
+          }
+
+
+          const workbook =
+            XLSX.read(
+              event.target.result,
+              {
+                type:"array",
+                cellDates:true
+              }
+            );
+
+
+          const sheet =
+            workbook.Sheets[
+              workbook.SheetNames[0]
+            ];
+
+
+          rows =
+            XLSX.utils.sheet_to_json(
+              sheet,
+              {
+                header:1,
+                defval:""
+              }
+            );
+
+        }
+
+
+        importRows(rows);
+
+      }
+
+      catch(error){
+
+        alert(
+          "Import failed: " +
+          error.message
+        );
+
+      }
+
+
+      input.value = "";
 
     };
 
 
-    saveData(
-        data
-    );
-
-
-    closeModal();
-
-    renderCalendar();
-
-}
-
-
-/* =========================
-   DELETE
-========================= */
-
-function deleteShift(){
-
-    const data =
-        getData();
-
-
-    delete data[
-        selectedDate
-    ];
-
-
-    saveData(
-        data
-    );
-
-
-    closeModal();
-
-    renderCalendar();
-
-}
-
-
-/* =========================
-   SUMMARY
-========================= */
-
-function updateSummary(){
-
-    const year =
-        currentDate.getFullYear();
-
-    const month =
-        currentDate.getMonth();
-
-    const data =
-        getData();
-
-
-    let dayCount = 0;
-    let nightCount = 0;
-    let offCount = 0;
-    let leaveCount = 0;
-    let totalHours = 0;
-
-
-    const totalDays =
-        new Date(
-            year,
-            month + 1,
-            0
-        ).getDate();
-
-
-    for(
-        let i = 1;
-        i <= totalDays;
-        i++
-    ){
-
-        const key =
-            dateKey(
-                year,
-                month,
-                i
-            );
-
-
-        const x =
-            data[key];
-
-
-        if(!x){
-            continue;
-        }
-
-
-        if(x.type === "day"){
-            dayCount++;
-        }
-
-        if(x.type === "night"){
-            nightCount++;
-        }
-
-        if(x.type === "off"){
-            offCount++;
-        }
-
-        if(x.type === "leave"){
-            leaveCount++;
-        }
-
-
-        if(
-
-            x.type === "day" ||
-            x.type === "night"
-
-        ){
-
-            totalHours +=
-                calculateHours(
-                    x.in,
-                    x.out
-                );
-
-        }
-
-    }
-
-
-    document.getElementById(
-        "dayCount"
-    ).textContent =
-        dayCount;
-
-
-    document.getElementById(
-        "nightCount"
-    ).textContent =
-        nightCount;
-
-
-    document.getElementById(
-        "offCount"
-    ).textContent =
-        offCount;
-
-
-    document.getElementById(
-        "leaveCount"
-    ).textContent =
-        leaveCount;
-
-
-    document.getElementById(
-        "hoursCount"
-    ).textContent =
-        formatHours(
-            totalHours
-        ) + "h";
-
-}
-
-
-/* =========================
-   MONTH
-========================= */
-
-function prevMonth(){
-
-    currentDate.setMonth(
-        currentDate.getMonth() - 1
-    );
-
-    renderCalendar();
-
-}
-
-
-function nextMonth(){
-
-    currentDate.setMonth(
-        currentDate.getMonth() + 1
-    );
-
-    renderCalendar();
-
-}
-
-
-function todayMonth(){
-
-    currentDate =
-        new Date();
-
-    renderCalendar();
-
-}
-
-
-/* =========================
-   OUTPUT MENU
-========================= */
-
-function showOutputMenu(){
-
-    document.getElementById(
-        "outputMenu"
-    ).classList.add(
-        "show"
-    );
-
-}
-
-
-function closeOutputMenu(){
-
-    document.getElementById(
-        "outputMenu"
-    ).classList.remove(
-        "show"
-    );
-
-}
-
-
-/* =========================
-   EXPORT EXCEL
-========================= */
-
-function exportExcel(){
-
-    if(
-        typeof XLSX === "undefined"
-    ){
-
-        alert(
-            "Excel library එක load වෙලා නැහැ. Internet ON කරන්න."
-        );
-
-        return;
-
-    }
-
-
-    const year =
-        currentDate.getFullYear();
-
-    const month =
-        currentDate.getMonth();
-
-    const data =
-        getData();
-
-    const rows = [];
-
-
-    const totalDays =
-        new Date(
-            year,
-            month + 1,
-            0
-        ).getDate();
-
-
-    for(
-        let day = 1;
-        day <= totalDays;
-        day++
-    ){
-
-        const key =
-            dateKey(
-                year,
-                month,
-                day
-            );
-
-
-        const x =
-            data[key];
-
-
-        let shift = "";
-        let inTime = "";
-        let outTime = "";
-        let workedHours = 0;
-        let holiday = "";
-
-
-        if(
-            holidays[key]
-        ){
-
-            holiday =
-                holidays[key];
-
-        }
-
-
-        if(x){
-
-            shift =
-                x.type || "";
-
-            inTime =
-                x.in || "";
-
-            outTime =
-                x.out || "";
-
-
-            if(
-
-                x.type === "day" ||
-                x.type === "night"
-
-            ){
-
-                workedHours =
-                    calculateHours(
-                        x.in,
-                        x.out
-                    );
-
-            }
-
-        }
-
-
-        rows.push({
-
-            Date:key,
-
-            Shift:shift,
-
-            IN:inTime,
-
-            OUT:outTime,
-
-            "Worked Hours":
-                workedHours,
-
-            Holiday:holiday
-
-        });
-
-    }
-
-
-    const ws =
-        XLSX.utils.json_to_sheet(
-            rows
-        );
-
-
-    const wb =
-        XLSX.utils.book_new();
-
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        ws,
-        "Job Calendar"
-    );
-
-
-    XLSX.writeFile(
-
-        wb,
-
-        "Job-Calendar-" +
-        year +
-        "-" +
-        String(
-            month + 1
-        ).padStart(2,"0") +
-        ".xlsx"
-
-    );
-
-
-    closeOutputMenu();
-
-}
-
-
-/* =========================
-   EXPORT CSV
-========================= */
-
-function exportCSV(){
-
-    const year =
-        currentDate.getFullYear();
-
-    const month =
-        currentDate.getMonth();
-
-    const data =
-        getData();
-
-
-    let csv =
-        "\uFEFF";
-
-
-    csv +=
-        "Date,Shift,IN,OUT,Worked Hours,Holiday\n";
-
-
-    const totalDays =
-        new Date(
-            year,
-            month + 1,
-            0
-        ).getDate();
-
-
-    function clean(value){
-
-        return '"' +
-            String(
-                value ?? ""
-            ).replace(
-                /"/g,
-                '""'
-            ) +
-            '"';
-
-    }
-
-
-    for(
-        let day = 1;
-        day <= totalDays;
-        day++
-    ){
-
-        const key =
-            dateKey(
-                year,
-                month,
-                day
-            );
-
-
-        const x =
-            data[key];
-
-
-        let shift = "";
-        let inTime = "";
-        let outTime = "";
-        let workedHours = 0;
-        let holiday = "";
-
-
-        if(
-            holidays[key]
-        ){
-
-            holiday =
-                holidays[key];
-
-        }
-
-
-        if(x){
-
-            shift =
-                x.type || "";
-
-            inTime =
-                x.in || "";
-
-            outTime =
-                x.out || "";
-
-
-            if(
-
-                x.type === "day" ||
-                x.type === "night"
-
-            ){
-
-                workedHours =
-                    calculateHours(
-                        x.in,
-                        x.out
-                    );
-
-            }
-
-        }
-
-
-        csv +=
-
-            clean(key) + "," +
-            clean(shift) + "," +
-            clean(inTime) + "," +
-            clean(outTime) + "," +
-            clean(
-                formatHours(
-                    workedHours
-                )
-            ) + "," +
-            clean(holiday) +
-            "\n";
-
-    }
-
-
-    const blob =
-        new Blob(
-            [csv],
-            {
-                type:
-                "text/csv;charset=utf-8;"
-            }
-        );
-
-
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-
-    link.href =
-        url;
-
-
-    link.download =
-
-        "Job-Calendar-" +
-        year +
-        "-" +
-        String(
-            month + 1
-        ).padStart(2,"0") +
-        ".csv";
-
-
-    document.body.appendChild(
-        link
-    );
-
-
-    link.click();
-
-
-    document.body.removeChild(
-        link
-    );
-
-
-    URL.revokeObjectURL(
-        url
-    );
-
-
-    closeOutputMenu();
-
-}
-
-
-/* =========================
-   IMPORT
-========================= */
-
-function importData(event){
-
-    const file =
-        event.target.files[0];
-
-
-    if(!file){
-        return;
-    }
-
-
-    const name =
-        file.name.toLowerCase();
-
-
-    if(
-        name.endsWith(".csv")
-    ){
-
-        importCSV(file);
-
-    }else{
-
-        importExcel(file);
-
-    }
-
-
-    event.target.value = "";
-
-}
-
-
-/* =========================
-   EXCEL IMPORT
-========================= */
-
-function importExcel(file){
-
-    if(
-        typeof XLSX === "undefined"
-    ){
-
-        alert(
-            "Excel library එක load වෙලා නැහැ. Internet ON කරන්න."
-        );
-
-        return;
-
-    }
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload =
-        function(e){
-
-            try{
-
-                const workbook =
-                    XLSX.read(
-                        e.target.result,
-                        {
-                            type:"array",
-                            cellDates:true
-                        }
-                    );
-
-
-                const sheet =
-                    workbook.Sheets[
-                        workbook.SheetNames[0]
-                    ];
-
-
-                const rows =
-                    XLSX.utils.sheet_to_json(
-                        sheet,
-                        {
-                            defval:""
-                        }
-                    );
-
-
-                importRows(
-                    rows
-                );
-
-            }
-            catch(error){
-
-                console.error(
-                    error
-                );
-
-                alert(
-                    "❌ Excel file එක read කරන්න බැරි වුණා."
-                );
-
-            }
-
-        };
-
-
-    reader.readAsArrayBuffer(
-        file
-    );
-
-}
-
-
-/* =========================
-   CSV IMPORT
-========================= */
-
-function importCSV(file){
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload =
-        function(e){
-
-            try{
-
-                let text =
-                    e.target.result;
-
-
-                text =
-                    text.replace(
-                        /^\uFEFF/,
-                        ""
-                    );
-
-
-                const rows =
-                    parseCSV(
-                        text
-                    );
-
-
-                if(
-                    rows.length < 2
-                ){
-
-                    alert(
-                        "❌ CSV file එකේ data නැහැ."
-                    );
-
-                    return;
-
-                }
-
-
-                const headers =
-                    rows[0];
-
-
-                const objects = [];
-
-
-                for(
-                    let i = 1;
-                    i < rows.length;
-                    i++
-                ){
-
-                    if(
-                        rows[i].length === 0
-                    ){
-
-                        continue;
-
-                    }
-
-
-                    const obj = {};
-
-
-                    headers.forEach(
-                        function(header,index){
-
-                            obj[
-                                header.trim()
-                            ] =
-                                rows[i][index] || "";
-
-                        }
-                    );
-
-
-                    objects.push(
-                        obj
-                    );
-
-                }
-
-
-                importRows(
-                    objects
-                );
-
-            }
-            catch(error){
-
-                console.error(
-                    error
-                );
-
-                alert(
-                    "❌ CSV file එක read කරන්න බැරි වුණා."
-                );
-
-            }
-
-        };
-
+  if(
+    file.name
+      .toLowerCase()
+      .endsWith(".csv")
+  ){
 
     reader.readAsText(
-        file,
-        "UTF-8"
+      file,
+      "UTF-8"
     );
+
+  }
+
+  else{
+
+    reader.readAsArrayBuffer(
+      file
+    );
+
+  }
 
 }
 
 
-/* =========================
+/* =========================================
    IMPORT ROWS
-========================= */
+========================================= */
 
-function importRows(rows){
+function importRows(
+  rows
+){
 
-    const data =
-        getData();
-
-
-    let imported = 0;
-
-
-    rows.forEach(
-        function(row){
-
-            const date =
-                normalizeDate(
-                    row["Date"]
-                );
-
-
-            if(!date){
-                return;
-            }
-
-
-            let shift =
-                String(
-                    row["Shift"] || ""
-                )
-                .trim()
-                .toLowerCase();
-
-
-            if(
-                shift === "day" ||
-                shift.includes("☀️")
-            ){
-
-                shift = "day";
-
-            }
-
-            else if(
-                shift === "night" ||
-                shift.includes("🌙")
-            ){
-
-                shift = "night";
-
-            }
-
-            else if(
-                shift === "off" ||
-                shift.includes("🟢")
-            ){
-
-                shift = "off";
-
-            }
-
-            else if(
-                shift === "leave" ||
-                shift === "නිවාඩු" ||
-                shift.includes("🟡")
-            ){
-
-                shift = "leave";
-
-            }
-
-            else{
-
-                return;
-
-            }
-
-
-            data[date] = {
-
-                type:shift,
-
-                in:
-                    convertTime(
-                        row["IN"]
-                    ),
-
-                out:
-                    convertTime(
-                        row["OUT"]
-                    )
-
-            };
-
-
-            imported++;
-
-        }
-    );
-
-
-    saveData(
-        data
-    );
-
-
-    renderCalendar();
-
-
-    /* IMPORTED DATA තිබෙන මාසයට යන්න */
-
-    if(imported > 0){
-
-        const first =
-            Object.keys(data)
-            .find(
-                key =>
-                rows.some(
-                    row =>
-                    normalizeDate(
-                        row["Date"]
-                    ) === key
-                )
-            );
-
-
-        if(first){
-
-            const parts =
-                first.split("-");
-
-
-            currentDate =
-                new Date(
-                    Number(parts[0]),
-                    Number(parts[1]) - 1,
-                    1
-                );
-
-
-            renderCalendar();
-
-        }
-
-    }
-
+  if(
+    !rows.length
+  ){
 
     alert(
-        "✅ " +
-        imported +
-        " records imported!"
+      "File එක empty."
     );
 
-}
+    return;
+
+  }
 
 
-/* =========================
-   DATE NORMALIZE
-========================= */
-
-function normalizeDate(value){
-
-    if(
-        value instanceof Date &&
-        !isNaN(value)
-    ){
-
-        return (
-
-            value.getFullYear() +
-            "-" +
-            String(
-                value.getMonth() + 1
-            ).padStart(2,"0") +
-            "-" +
-            String(
-                value.getDate()
-            ).padStart(2,"0")
-
-        );
-
-    }
+  let start = 0;
 
 
-    if(
-        typeof value === "number"
-    ){
+  /* HEADER */
 
-        const d =
-            new Date(
-                Date.UTC(
-                    1899,
-                    11,
-                    30
-                ) +
-                value *
-                86400000
-            );
-
-
-        return (
-
-            d.getUTCFullYear() +
-            "-" +
-            String(
-                d.getUTCMonth() + 1
-            ).padStart(2,"0") +
-            "-" +
-            String(
-                d.getUTCDate()
-            ).padStart(2,"0")
-
-        );
-
-    }
-
-
-    let str =
-        String(
-            value || ""
-        ).trim();
-
-
-    if(
-        /^\d{4}-\d{1,2}-\d{1,2}$/.test(
-            str
+  const first =
+    Array.isArray(rows[0])
+      ? rows[0].map(
+          x =>
+            String(x)
+              .trim()
+              .toLowerCase()
         )
+      : [];
+
+
+  if(
+    first.includes("date") ||
+    first.includes("shift")
+  ){
+
+    start = 1;
+
+  }
+
+
+  let count = 0;
+
+  let firstDate = "";
+
+
+  for(
+    let i=start;
+    i<rows.length;
+    i++
+  ){
+
+    const row =
+      rows[i];
+
+
+    if(!row){
+
+      continue;
+
+    }
+
+
+    let obj;
+
+
+    /* ARRAY */
+
+    if(
+      Array.isArray(row)
     ){
 
-        const p =
-            str.split("-");
+      obj = {
+
+        Date:row[0],
+
+        Shift:row[1],
+
+        Start:row[2],
+
+        End:row[3],
+
+        Hours:row[4]
+
+      };
+
+    }
+
+    /* OBJECT */
+
+    else{
+
+      obj = {
+
+        Date:
+          row.Date ??
+          row.date,
+
+        Shift:
+          row.Shift ??
+          row.shift,
+
+        Start:
+          row.Start ??
+          row.start,
+
+        End:
+          row.End ??
+          row.end,
+
+        Hours:
+          row.Hours ??
+          row.hours
+
+      };
+
+    }
 
 
-        return (
+    const date =
+      normalizeDate(
+        obj.Date
+      );
 
-            p[0] +
-            "-" +
-            String(
-                p[1]
-            ).padStart(2,"0") +
-            "-" +
-            String(
-                p[2]
-            ).padStart(2,"0")
 
-        );
+    if(!date){
+
+      continue;
+
+    }
+
+
+    const type =
+      detectType(
+        obj.Shift
+      );
+
+
+    let startTime =
+      normalizeTime(
+        obj.Start
+      );
+
+
+    let endTime =
+      normalizeTime(
+        obj.End
+      );
+
+
+    let hours =
+      Number(
+        obj.Hours
+      );
+
+
+    if(
+      !isFinite(hours)
+    ){
+
+      hours =
+        getHours(type);
 
     }
 
 
     if(
-        /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(
-            str
-        )
+      type === "day"
     ){
 
-        const p =
-            str.split("/");
+      if(!startTime)
+        startTime = "08:00";
 
-
-        return (
-
-            p[0] +
-            "-" +
-            String(
-                p[1]
-            ).padStart(2,"0") +
-            "-" +
-            String(
-                p[2]
-            ).padStart(2,"0")
-
-        );
+      if(!endTime)
+        endTime = "20:00";
 
     }
-
-
-    let match =
-        str.match(
-            /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/
-        );
-
-
-    if(match){
-
-        return (
-
-            match[3] +
-            "-" +
-            String(
-                match[2]
-            ).padStart(2,"0") +
-            "-" +
-            String(
-                match[1]
-            ).padStart(2,"0")
-
-        );
-
-    }
-
-
-    const parsed =
-        new Date(str);
 
 
     if(
-        !isNaN(parsed)
+      type === "night"
     ){
 
-        return (
+      if(!startTime)
+        startTime = "20:00";
 
-            parsed.getFullYear() +
-            "-" +
-            String(
-                parsed.getMonth() + 1
-            ).padStart(2,"0") +
-            "-" +
-            String(
-                parsed.getDate()
-            ).padStart(2,"0")
-
-        );
+      if(!endTime)
+        endTime = "08:00";
 
     }
 
 
-    return "";
+    const labels = {
+
+      day:"☀ DAY",
+
+      night:"🌙 NIGHT",
+
+      off:"🟢 OFF",
+
+      leave:"🟡 නිවාඩු"
+
+    };
+
+
+    data[date] = {
+
+      type:type,
+
+      label:
+        labels[type],
+
+      start:
+        startTime,
+
+      end:
+        endTime,
+
+      hours:
+        hours
+
+    };
+
+
+    count++;
+
+
+    if(
+      !firstDate
+    ){
+
+      firstDate =
+        date;
+
+    }
+
+  }
+
+
+  if(
+    count === 0
+  ){
+
+    alert(
+      "Valid date rows හමු වුණේ නැහැ."
+    );
+
+    return;
+
+  }
+
+
+  saveData();
+
+
+  const d =
+    new Date(
+      firstDate +
+      "T00:00:00"
+    );
+
+
+  currentDate =
+    new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      1
+    );
+
+
+  closeModal(
+    "ioModal"
+  );
+
+
+  render();
+
+
+  alert(
+    count +
+    " records import කළා."
+  );
 
 }
 
 
-/* =========================
-   TIME NORMALIZE
-========================= */
+/* =========================================
+   CLEAR DATA
+========================================= */
 
-function convertTime(value){
+function clearAllData(){
 
-    if(
-        value === null ||
-        value === undefined ||
-        value === ""
-    ){
+  if(
+    confirm(
+      "සියලු calendar data මකන්නද?"
+    )
+  ){
 
-        return "";
+    data = {};
 
-    }
+    saveData();
 
+    render();
 
-    if(
-        value instanceof Date &&
-        !isNaN(value)
-    ){
-
-        return (
-
-            String(
-                value.getHours()
-            ).padStart(2,"0") +
-            ":" +
-            String(
-                value.getMinutes()
-            ).padStart(2,"0")
-
-        );
-
-    }
-
-
-    let str =
-        String(value).trim();
-
-
-    /* 08:00 */
-
-    let match =
-        str.match(
-            /^(\d{1,2}):(\d{1,2})/
-        );
-
-
-    if(match){
-
-        return (
-
-            String(
-                Number(match[1])
-            ).padStart(2,"0") +
-            ":" +
-            String(
-                Number(match[2])
-            ).padStart(2,"0")
-
-        );
-
-    }
-
-
-    /* Excel decimal time */
-
-    const num =
-        Number(str);
-
-
-    if(
-        !isNaN(num) &&
-        num >= 0 &&
-        num < 1
-    ){
-
-        const total =
-            Math.round(
-                num * 1440
-            ) % 1440;
-
-
-        return (
-
-            String(
-                Math.floor(
-                    total / 60
-                )
-            ).padStart(2,"0") +
-            ":" +
-            String(
-                total % 60
-            ).padStart(2,"0")
-
-        );
-
-    }
-
-
-    return str;
+  }
 
 }
 
 
-/* =========================
-   CSV PARSER
-========================= */
+/* =========================================
+   START
+========================================= */
 
-function parseCSV(text){
+render();
 
-    const rows = [];
+</script>
 
-    let row = [];
 
-    let value = "";
+<!--
+================================================
+EXCEL SUPPORT
+================================================
 
-    let quotes = false;
+SheetJS official CDN.
 
+Internet තිබුණොත් Excel
+INPUT / OUTPUT වැඩ කරයි.
+================================================
+-->
 
-    for(
-        let i = 0;
-        i < text.length;
-        i++
-    ){
-
-        const c =
-            text[i];
-
-        const next =
-            text[i + 1];
-
-
-        if(
-            c === '"' &&
-            quotes &&
-            next === '"'
-        ){
-
-            value += '"';
-
-            i++;
-
-            continue;
-
-        }
-
-
-        if(
-            c === '"'
-        ){
-
-            quotes =
-                !quotes;
-
-            continue;
-
-        }
-
-
-        if(
-            c === "," &&
-            !quotes
-        ){
-
-            row.push(
-                value
-            );
-
-            value = "";
-
-            continue;
-
-        }
-
-
-        if(
-
-            (c === "\n" ||
-             c === "\r") &&
-            !quotes
-
-        ){
-
-            if(
-                c === "\r" &&
-                next === "\n"
-            ){
-
-                i++;
-
-            }
-
-
-            row.push(
-                value
-            );
-
-
-            rows.push(
-                row
-            );
-
-
-            row = [];
-
-            value = "";
-
-            continue;
-
-        }
-
-
-        value += c;
-
-    }
-
-
-    if(
-        value.length ||
-        row.length
-    ){
-
-        row.push(
-            value
-        );
-
-        rows.push(
-            row
-        );
-
-    }
-
-
-    return rows;
-
-}
-
-
-/* =========================
-   CLOSE MODALS
-========================= */
-
-document.getElementById(
-    "shiftModal"
-).addEventListener(
-    "click",
-    function(e){
-
-        if(
-            e.target === this
-        ){
-
-            closeModal();
-
-        }
-
-    }
-);
-
-
-document.getElementById(
-    "outputMenu"
-).addEventListener(
-    "click",
-    function(e){
-
-        if(
-            e.target === this
-        ){
-
-            closeOutputMenu();
-
-        }
-
-    }
-);
-
-
-/* =========================
-   START APP
-========================= */
-
-renderCalendar();
-
+<script
+src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js">
 </script>
 
 </body>
 </html>
-```
